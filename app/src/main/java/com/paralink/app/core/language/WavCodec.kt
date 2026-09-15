@@ -64,7 +64,6 @@ object WavCodec {
                 val rate = readLeInt(inStream)
                 inStream.readInt()
                 inStream.readShort()
-                inStream.readShort()
                 var bits = readLeShort(inStream).toInt()
                 if (size > 16) inStream.skip((size - 16).toLong())
                 if (format != 1) {
