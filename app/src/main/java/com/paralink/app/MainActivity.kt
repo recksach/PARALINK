@@ -101,7 +101,9 @@ class MainActivity : ComponentActivity() {
         val engine = if (delegates.isEmpty()) null else CascadeTranslationEngine(delegates)
         val manager = LanguageManager(this, engine)
         runCatching {
-            LanguageManager.bundledManifest = LanguageManifest.fromJson(assets.open("language-manifest.json"))
+            LanguageManager.bundledManifest = LanguageManifest.fromJson(
+                assets.open("language-manifest.json").bufferedReader().use { it.readText() }
+            )
         }
         return manager
     }
@@ -260,7 +262,7 @@ private fun ParalinkApp(
                     nodeId = nodeId,
                     name = displayName,
                     peers = peerDevices,
-                    knownNodes = knownNodes,
+                    knownNodes = knownNodes.map { it.nodeId },
                     caps = caps,
                     connected = connected,
                     error = lastError,

@@ -42,3 +42,9 @@ data class VoiceMessage(
     val transcript: String? = null,
     val translatedText: String? = null
 ) : Serializable
+
+data class Route(
+    val destination: String,
+    val hops: List<String>,
+    val cost: Double
+) : Serializable

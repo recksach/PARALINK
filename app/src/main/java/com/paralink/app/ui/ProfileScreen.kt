@@ -51,7 +51,7 @@ fun ProfileScreen(
         Spacer(Modifier.height(16.dp))
         Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220)), modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
             Column(Modifier.padding(16.dp)) {
-                Text(stringResource(R.string.app_language_title), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF63CFFF))
+                Text(stringResource(R.string.app_language), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF63CFFF))
                 Spacer(Modifier.height(8.dp))
                 LanguageMenuRow(stringResource(R.string.app_language), language.appLanguage, languages) { language.appLanguage = it }
                 LanguageMenuRow(stringResource(R.string.communication_language), language.communicationLanguage, languages) { language.communicationLanguage = it }

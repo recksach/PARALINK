@@ -40,8 +40,8 @@ fun NetworkScreen(
     Column(Modifier.fillMaxSize().padding(18.dp)) {
         Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
             Column {
-                Text("PARALINK", 28.sp, FontWeight.Bold)
-                Text(stringResource(R.string.autonomous_network), 11.sp, color = Color(0xFF75B6FF), letterSpacing = 2.sp)
+                Text("PARALINK", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.autonomous_network), fontSize = 11.sp, color = Color(0xFF75B6FF), letterSpacing = 2.sp)
             }
             IconButton(onClick = refresh) { Icon(Icons.Default.Refresh, null) }
         }
@@ -53,7 +53,7 @@ fun NetworkScreen(
         Spacer(Modifier.height(12.dp))
         Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220))) {
             Column(Modifier.padding(14.dp)) {
-                Text(stringResource(R.string.node_label), 11.sp, color = Color(0xFF6F9BCC))
+                Text(stringResource(R.string.node_label), fontSize = 11.sp, color = Color(0xFF6F9BCC))
                 Text("$name • $nodeId", fontWeight = FontWeight.SemiBold)
                 Text(stringResource(R.string.wifi_direct_label) + " ${caps.summary()["wifiDirect"] == true}")
                 Text(stringResource(R.string.wifi_aware_label) + " ${caps.summary()["wifiAware"] == true}")
@@ -107,9 +107,9 @@ private fun PeerCard(d: android.net.wifi.p2p.WifiP2pDevice, connect: () -> Unit)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(d.deviceName.ifBlank { "PARALINK NODE" }, fontWeight = FontWeight.SemiBold)
-                Text(d.deviceAddress, 11.sp, color = Color(0xFF7890AA))
+                Text(d.deviceAddress, fontSize = 11.sp, color = Color(0xFF7890AA))
             }
-            Text(stringResource(R.string.connect), 11.sp, color = Color(0xFF29D9FF), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.connect), fontSize = 11.sp, color = Color(0xFF29D9FF), fontWeight = FontWeight.Bold)
         }
     }
 }

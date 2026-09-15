@@ -26,8 +26,8 @@ object WavPlayer {
         val encoding = if (info.bitsPerSample > 16) AudioFormat.ENCODING_PCM_FLOAT else AudioFormat.ENCODING_PCM_16BIT
         val t = AudioTrack.Builder()
             .setAudioAttributes(android.media.AudioAttributes.Builder()
-                .setUsage(AudioAttributesUsage.COMMUNICATION)
-                .setContentType(AudioAttributesContentType.SPEECH)
+                .setUsage(android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
                 .build())
             .setAudioFormat(AudioFormat.Builder()
                 .setSampleRate(info.sampleRate)
@@ -57,9 +57,6 @@ object WavPlayer {
         track = null
         thread = null
     }
-
-    private val AudioAttributesUsage = android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION
-    private val AudioAttributesContentType = android.media.AudioAttributes.CONTENT_TYPE_SPEECH
 }
 
 class PttRecorder {

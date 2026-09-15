@@ -45,7 +45,7 @@ class OfflinePhraseTranslationEngine(
 
         val tokens = tokenizeWithPunctuation(normalized)
         val words = tokens.filter { it.isWord }
-        val unknown = words.count { dict[it.text.toLowerCase(Locale.ROOT)] == null }
+        val unknown = words.count { dict[it.text.lowercase(Locale.ROOT)] == null }
         if (words.size == 1 && unknown == 1) {
             return TranslationResult(text, null, null, Language.EN, TranslationStatus.UNAVAILABLE)
         }
@@ -54,7 +54,7 @@ class OfflinePhraseTranslationEngine(
         }
 
         val translated = tokens.joinToString("") { t ->
-            if (t.isWord) dict[t.text.toLowerCase(Locale.ROOT)] ?: t.text else t.text
+            if (t.isWord) dict[t.text.lowercase(Locale.ROOT)] ?: t.text else t.text
         }
 
         val status = if (unknown == 0) TranslationStatus.TRANSLATED else TranslationStatus.PARTIAL

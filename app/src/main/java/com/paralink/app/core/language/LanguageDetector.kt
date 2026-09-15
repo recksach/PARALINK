@@ -1,5 +1,7 @@
 package com.paralink.app.core.language
 
+import java.util.Locale
+
 data class LanguageDetectionResult(
     val language: Language?,
     val confidence: Double,
