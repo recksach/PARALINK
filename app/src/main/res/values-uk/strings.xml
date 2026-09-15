@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">Мережа</string>
+    <string name="tab_chat">Чат</string>
+    <string name="tab_radio">Рація</string>
+    <string name="tab_wallet">Гаманець</string>
+    <string name="tab_profile">Профіль</string>
+
+    <string name="autonomous_network">АВТОНОМНА МЕРЕЖА</string>
+    <string name="node_label">ВУЗОЛ</string>
+    <string name="connected">З\'ЄДНАНО</string>
+    <string name="local_search">ЛОКАЛЬНИЙ ПОШУК</string>
+    <string name="node_count">%1$d ВУЗЛІВ</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">Пристрої поруч</string>
+    <string name="nearby_hint">Відкрийте PARALINK на іншому Android-пристрої поруч, надайте дозвіл "Пристрої поруч" і тримайте цей екран відкритим.</string>
+    <string name="connect">ПІД\'ЄДНАТИСЯ</string>
+
+    <string name="messenger">Месенджер</string>
+    <string name="transport_hint">Пряме локальне зашифроване з\'єднання</string>
+    <string name="message_hint">Повідомлення</string>
+    <string name="send">Надіслати</string>
+
+    <string name="push_to_talk">НАДІШЛИ ТА ГОВОРИ</string>
+    <string name="transmitting">ПЕРЕДАЧА</string>
+    <string name="hold_to_talk">УТРИМУЙ ДЛЯ РОЗМОВИ</string>
+    <string name="radio_hint">Аудіо передається лише локально. Тримайте застосунок на передньому плані на етапі прототипу.</string>
+
+    <string name="wallet_title">ГАМАНЕЦЬ PARALINK</string>
+    <string name="offline_ledger">Локальний реєстр без інтернету</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">Локальний баланс</string>
+
+    <string name="identity">ОСОБА</string>
+    <string name="relay">РЕЛЕ</string>
+    <string name="ready">ГОТОВО</string>
+
+    <string name="settings">Налаштування</string>
+    <string name="translation_settings">Переклад</string>
+    <string name="app_language">Мова застосунку</string>
+    <string name="communication_language">Моя мова спілкування</string>
+    <string name="translate_incoming_to">Перекладати вхідні повідомлення на</string>
+    <string name="target_language">Цільова мова</string>
+    <string name="auto_translation">Автопереклад</string>
+    <string name="auto_detect_language">Автовизначення мови</string>
+    <string name="show_original">Показувати оригінал</string>
+    <string name="translate_voice">Перекладати голос</string>
+    <string name="translate_ptt">Перекладати push-to-talk</string>
+    <string name="call_captions">Субтитри виклику</string>
+    <string name="display_mode">Режим відображення</string>
+    <string name="display_both">Оригінал + переклад</string>
+    <string name="display_original_only">Тільки оригінал</string>
+    <string name="display_translation_only">Тільки переклад</string>
+    <string name="on">УВІМК.</string>
+    <string name="off">ВИМК.</string>
+
+    <string name="original">Оригінал</string>
+    <string name="translated">Переклад</string>
+    <string name="original_label">Оригінал:</string>
+    <string name="translated_label">Переклад:</string>
+    <string name="you">ВИ</string>
+    <string name="translate">Перекласти</string>
+    <string name="voice_original_label">Оригінальна транскрипція:</string>
+    <string name="voice_translation_label">Переклад:</string>
+    <string name="no_translation_available">Переклад недоступний</string>
+    <string name="translating">Переклад…</string>
+
+    <string name="translation_unavailable">Офлайн-переклад для цієї мови недоступний у цій збірці.</string>
+    <string name="language_uncertain">Мову не визначено</string>
+    <string name="detected_language_title">Визначена мова:</string>
+    <string name="use_language">ВИКОРИСТАТИ</string>
+    <string name="change_language">ЗМІНИТИ</string>
+</resources>

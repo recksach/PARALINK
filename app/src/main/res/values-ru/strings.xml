@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">Сеть</string>
+    <string name="tab_chat">Чат</string>
+    <string name="tab_radio">Рация</string>
+    <string name="tab_wallet">Кошелёк</string>
+    <string name="tab_profile">Профиль</string>
+
+    <string name="autonomous_network">АВТОНОМНАЯ СЕТЬ</string>
+    <string name="node_label">УЗЕЛ</string>
+    <string name="connected">ПОДКЛЮЧЕНО</string>
+    <string name="local_search">ЛОКАЛЬНЫЙ ПОИСК</string>
+    <string name="node_count">%1$d УЗЛОВ</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">Устройства рядом</string>
+    <string name="nearby_hint">Откройте PARALINK на другом рядом находящемся устройстве Android, предоставьте разрешение "Устройства рядом" и держите этот экран открытым.</string>
+    <string name="connect">ПОДКЛЮЧИТЬСЯ</string>
+
+    <string name="messenger">Мессенджер</string>
+    <string name="transport_hint">Прямой локальный зашифрованный канал</string>
+    <string name="message_hint">Сообщение</string>
+    <string name="send">Отправить</string>
+
+    <string name="push_to_talk">НАЖМИ И ГОВОРИ</string>
+    <string name="transmitting">ПЕРЕДАЧА</string>
+    <string name="hold_to_talk">УДЕРЖИВАЙ ДЛЯ РАЗГОВОРА</string>
+    <string name="radio_hint">Аудиоканал работает только локально. Держите приложение на переднем плане на этапе прототипа.</string>
+
+    <string name="wallet_title">КОШЕЛЁК PARALINK</string>
+    <string name="offline_ledger">Локальный реестр без интернета</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">Локальный баланс</string>
+
+    <string name="identity">ЛИЧНОСТЬ</string>
+    <string name="relay">РЕЛЕ</string>
+    <string name="ready">ГОТОВО</string>
+
+    <string name="settings">Настройки</string>
+    <string name="translation_settings">Перевод</string>
+    <string name="app_language">Язык приложения</string>
+    <string name="communication_language">Мой язык общения</string>
+    <string name="translate_incoming_to">Переводить входящие сообщения на</string>
+    <string name="target_language">Целевой язык</string>
+    <string name="auto_translation">Автоперевод</string>
+    <string name="auto_detect_language">Автоопределение языка</string>
+    <string name="show_original">Показывать оригинал</string>
+    <string name="translate_voice">Переводить голос</string>
+    <string name="translate_ptt">Переводить push-to-talk</string>
+    <string name="call_captions">Субтитры звонка</string>
+    <string name="display_mode">Режим отображения</string>
+    <string name="display_both">Оригинал + перевод</string>
+    <string name="display_original_only">Только оригинал</string>
+    <string name="display_translation_only">Только перевод</string>
+    <string name="on">ВКЛ.</string>
+    <string name="off">ВЫКЛ.</string>
+
+    <string name="original">Оригинал</string>
+    <string name="translated">Перевод</string>
+    <string name="original_label">Оригинал:</string>
+    <string name="translated_label">Перевод:</string>
+    <string name="you">ВЫ</string>
+    <string name="translate">Перевести</string>
+    <string name="voice_original_label">Исходная транскрипция:</string>
+    <string name="voice_translation_label">Перевод:</string>
+    <string name="no_translation_available">Перевод недоступен</string>
+    <string name="translating">Перевод…</string>
+
+    <string name="translation_unavailable">Офлайн-перевод для этого языка недоступен в этой сборке.</string>
+    <string name="language_uncertain">Язык не определён</string>
+    <string name="detected_language_title">Определённый язык:</string>
+    <string name="use_language">ИСПОЛЬЗОВАТЬ</string>
+    <string name="change_language">СМЕНИТЬ</string>
+</resources>

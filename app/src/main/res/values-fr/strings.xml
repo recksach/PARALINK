@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">Réseau</string>
+    <string name="tab_chat">Chat</string>
+    <string name="tab_radio">Talkie-walkie</string>
+    <string name="tab_wallet">Portefeuille</string>
+    <string name="tab_profile">Profil</string>
+
+    <string name="autonomous_network">RÉSEAU AUTONOME</string>
+    <string name="node_label">NŒUD</string>
+    <string name="connected">CONNECTÉ</string>
+    <string name="local_search">RECHERCHE LOCALE</string>
+    <string name="node_count">%1$d NŒUDS</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">Appareils à proximité</string>
+    <string name="nearby_hint">Ouvrez PARALINK sur un autre Android à proximité, accordez l\'autorisation Appareils à proximité et gardez cet écran ouvert.</string>
+    <string name="connect">CONNECTER</string>
+
+    <string name="messenger">Messagerie</string>
+    <string name="transport_hint">Transport local chiffré direct</string>
+    <string name="message_hint">Message</string>
+    <string name="send">Envoyer</string>
+
+    <string name="push_to_talk">APPUYER POUR PARLER</string>
+    <string name="transmitting">TRANSMISSION</string>
+    <string name="hold_to_talk">MAINTENIR POUR PARLER</string>
+    <string name="radio_hint">Le transport audio est uniquement local. Gardez l\'application au premier plan pendant la phase de prototype.</string>
+
+    <string name="wallet_title">PORTEFEUILLE PARALINK</string>
+    <string name="offline_ledger">Registre local hors ligne en priorité</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">Solde local</string>
+
+    <string name="identity">IDENTITÉ</string>
+    <string name="relay">RELAIS</string>
+    <string name="ready">PRÊT</string>
+
+    <string name="settings">Paramètres</string>
+    <string name="translation_settings">Traduction</string>
+    <string name="app_language">Langue de l\'application</string>
+    <string name="communication_language">Ma langue de communication</string>
+    <string name="translate_incoming_to">Traduire les messages entrants en</string>
+    <string name="target_language">Langue cible</string>
+    <string name="auto_translation">Traduction automatique</string>
+    <string name="auto_detect_language">Détecter automatiquement la langue</string>
+    <string name="show_original">Afficher l\'original</string>
+    <string name="translate_voice">Traduire la voix</string>
+    <string name="translate_ptt">Traduire le push-to-talk</string>
+    <string name="call_captions">Sous-titres d\'appel</string>
+    <string name="display_mode">Mode d\'affichage</string>
+    <string name="display_both">Original + traduction</string>
+    <string name="display_original_only">Original uniquement</string>
+    <string name="display_translation_only">Traduction uniquement</string>
+    <string name="on">ACTIVÉ</string>
+    <string name="off">DÉSACTIVÉ</string>
+
+    <string name="original">Original</string>
+    <string name="translated">Traduction</string>
+    <string name="original_label">Original :</string>
+    <string name="translated_label">Traduction :</string>
+    <string name="you">VOUS</string>
+    <string name="translate">Traduire</string>
+    <string name="voice_original_label">Transcription originale :</string>
+    <string name="voice_translation_label">Traduction :</string>
+    <string name="no_translation_available">Aucune traduction disponible</string>
+    <string name="translating">Traduction…</string>
+
+    <string name="translation_unavailable">La traduction hors ligne pour cette langue n\'est pas disponible dans cette version.</string>
+    <string name="language_uncertain">Langue incertaine</string>
+    <string name="detected_language_title">Langue détectée :</string>
+    <string name="use_language">UTILISER</string>
+    <string name="change_language">CHANGER</string>
+</resources>

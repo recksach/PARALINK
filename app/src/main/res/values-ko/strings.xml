@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">네트워크</string>
+    <string name="tab_chat">채팅</string>
+    <string name="tab_radio">무전기</string>
+    <string name="tab_wallet">지갑</string>
+    <string name="tab_profile">프로필</string>
+
+    <string name="autonomous_network">자율 네트워크</string>
+    <string name="node_label">노드</string>
+    <string name="connected">연결됨</string>
+    <string name="local_search">로컬 검색</string>
+    <string name="node_count">%1$d 노드</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">주변 기기</string>
+    <string name="nearby_hint">근처의 다른 Android에서 PARALINK를 열고, 주변 기기 권한을 허용하고, 이 화면을 열어 두세요.</string>
+    <string name="connect">연결</string>
+
+    <string name="messenger">메신저</string>
+    <string name="transport_hint">직접 로컬 암호화 전송</string>
+    <string name="message_hint">메시지</string>
+    <string name="send">보내기</string>
+
+    <string name="push_to_talk">눌러서 말하기</string>
+    <string name="transmitting">전송 중</string>
+    <string name="hold_to_talk">누르고 말하기</string>
+    <string name="radio_hint">오디오 전송은 로컬 전용입니다. 프로토타입 단계에서는 앱을 전경에 유지하세요.</string>
+
+    <string name="wallet_title">PARALINK 지갑</string>
+    <string name="offline_ledger">오프라인 우선 로컬 원장</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">로컬 잔액</string>
+
+    <string name="identity">신원</string>
+    <string name="relay">릴레이</string>
+    <string name="ready">준비됨</string>
+
+    <string name="settings">설정</string>
+    <string name="translation_settings">번역</string>
+    <string name="app_language">앱 언어</string>
+    <string name="communication_language">내 커뮤니케이션 언어</string>
+    <string name="translate_incoming_to">수신 메시지 번역 대상</string>
+    <string name="target_language">대상 언어</string>
+    <string name="auto_translation">자동 번역</string>
+    <string name="auto_detect_language">언어 자동 감지</string>
+    <string name="show_original">원본 표시</string>
+    <string name="translate_voice">음성 번역</string>
+    <string name="translate_ptt">푸시투토크 번역</string>
+    <string name="call_captions">통화 캡션</string>
+    <string name="display_mode">표시 모드</string>
+    <string name="display_both">원본 + 번역</string>
+    <string name="display_original_only">원본만</string>
+    <string name="display_translation_only">번역만</string>
+    <string name="on">켜짐</string>
+    <string name="off">꺼짐</string>
+
+    <string name="original">원본</string>
+    <string name="translated">번역</string>
+    <string name="original_label">원본:</string>
+    <string name="translated_label">번역:</string>
+    <string name="you">나</string>
+    <string name="translate">번역</string>
+    <string name="voice_original_label">원본 대본:</string>
+    <string name="voice_translation_label">번역:</string>
+    <string name="no_translation_available">사용 가능한 번역이 없습니다</string>
+    <string name="translating">번역 중…</string>
+
+    <string name="translation_unavailable">이 언어의 오프라인 번역은 이 빌드에서 사용할 수 없습니다.</string>
+    <string name="language_uncertain">언어가 확실하지 않음</string>
+    <string name="detected_language_title">감지된 언어:</string>
+    <string name="use_language">사용</string>
+    <string name="change_language">변경</string>
+</resources>

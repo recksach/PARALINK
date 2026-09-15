@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">Ağ</string>
+    <string name="tab_chat">Sohbet</string>
+    <string name="tab_radio">Radyo</string>
+    <string name="tab_wallet">Cüzdan</string>
+    <string name="tab_profile">Profil</string>
+
+    <string name="autonomous_network">OTONOM AĞ</string>
+    <string name="node_label">DÜĞÜM</string>
+    <string name="connected">BAĞLI</string>
+    <string name="local_search">YEREL ARAMA</string>
+    <string name="node_count">%1$d DÜĞÜM</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">Yakındaki cihazlar</string>
+    <string name="nearby_hint">Yakındaki başka bir Android cihazında PARALINK\'i açın, Yakındaki cihazlar iznini verin ve bu ekranı açık tutun.</string>
+    <string name="connect">BAĞLAN</string>
+
+    <string name="messenger">Mesajlaşma</string>
+    <string name="transport_hint">Doğrudan yerel şifreli aktarım</string>
+    <string name="message_hint">Mesaj</string>
+    <string name="send">Gönder</string>
+
+    <string name="push_to_talk">KONUŞMAK İÇİN BASIN</string>
+    <string name="transmitting">İLETİYOR</string>
+    <string name="hold_to_talk">TUT VE KONUŞ</string>
+    <string name="radio_hint">Ses aktarımı yalnızca yereldir. Prototip aşamasında uygulamayı ön planda tutun.</string>
+
+    <string name="wallet_title">PARALINK CÜZDANI</string>
+    <string name="offline_ledger">Çevrimdışı öncelikli yerel defter</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">Yerel bakiye</string>
+
+    <string name="identity">KİMLİK</string>
+    <string name="relay">RÖLE</string>
+    <string name="ready">HAZIR</string>
+
+    <string name="settings">Ayarlar</string>
+    <string name="translation_settings">Çeviri</string>
+    <string name="app_language">Uygulama Dili</string>
+    <string name="communication_language">İletişim Dilim</string>
+    <string name="translate_incoming_to">Gelen Mesajları Şuna Çevir</string>
+    <string name="target_language">Hedef Dil</string>
+    <string name="auto_translation">Otomatik Çeviri</string>
+    <string name="auto_detect_language">Dili Otomatik Algıla</string>
+    <string name="show_original">Orijinali Göster</string>
+    <string name="translate_voice">Sesi Çevir</string>
+    <string name="translate_ptt">Push-to-Talk Çevirisi</string>
+    <string name="call_captions">Çağrı Altyazıları</string>
+    <string name="display_mode">Görüntüleme modu</string>
+    <string name="display_both">Orijinal + Çeviri</string>
+    <string name="display_original_only">Yalnızca orijinal</string>
+    <string name="display_translation_only">Yalnızca çeviri</string>
+    <string name="on">AÇIK</string>
+    <string name="off">KAPALI</string>
+
+    <string name="original">Orijinal</string>
+    <string name="translated">Çevrilmiş</string>
+    <string name="original_label">Orijinal:</string>
+    <string name="translated_label">Çeviri:</string>
+    <string name="you">SEN</string>
+    <string name="translate">Çevir</string>
+    <string name="voice_original_label">Orijinal transkript:</string>
+    <string name="voice_translation_label">Çeviri:</string>
+    <string name="no_translation_available">Çeviri mevcut değil</string>
+    <string name="translating">Çevriliyor…</string>
+
+    <string name="translation_unavailable">Bu dil için çevrimdışı çeviri bu sürümde mevcut değil.</string>
+    <string name="language_uncertain">Dil belirsiz</string>
+    <string name="detected_language_title">Algılanan dil:</string>
+    <string name="use_language">KULLAN</string>
+    <string name="change_language">DEĞİŞTİR</string>
+</resources>

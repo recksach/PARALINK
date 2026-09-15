@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "languages": [
+    { "code": "en", "ui": true, "textTranslation": true, "speechRecognition": false, "tts": true },
+    { "code": "uk", "ui": true, "textTranslation": true, "speechRecognition": false, "tts": true },
+    { "code": "ru", "ui": true, "textTranslation": true, "speechRecognition": false, "tts": true },
+    { "code": "pl", "ui": true, "textTranslation": true, "speechRecognition": false, "tts": true },
+    { "code": "de", "ui": true, "textTranslation": true, "speechRecognition": false, "tts": true },
+    { "code": "fr", "ui": true, "textTranslation": false, "speechRecognition": false, "tts": true },
+    { "code": "es", "ui": true, "textTranslation": false, "speechRecognition": false, "tts": true },
+    { "code": "it", "ui": true, "textTranslation": false, "speechRecognition": false, "tts": true },
+    { "code": "pt", "ui": true, "textTranslation": false, "speechRecognition": false, "tts": true },
+    { "code": "tr", "ui": true, "textTranslation": false, "speechRecognition": false, "tts": true },
+    { "code": "ar", "ui": true, "textTranslation": false, "speechRecognition": false, "tts": true },
+    { "code": "hi", "ui": true, "textTranslation": false, "speechRecognition": false, "tts": true },
+    { "code": "zh", "ui": true, "textTranslation": false, "speechRecognition": false, "tts": true },
+    { "code": "ja", "ui": true, "textTranslation": false, "speechRecognition": false, "tts": true },
+    { "code": "ko", "ui": true, "textTranslation": false, "speechRecognition": false, "tts": true }
+  ],
+  "note": "textTranslation is enabled only for language pairs that ship bundled offline models in this APK. Everything remains optional: communication never depends on translation."
+}

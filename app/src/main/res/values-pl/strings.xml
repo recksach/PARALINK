@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">Sieć</string>
+    <string name="tab_chat">Czat</string>
+    <string name="tab_radio">Radiostacja</string>
+    <string name="tab_wallet">Portfel</string>
+    <string name="tab_profile">Profil</string>
+
+    <string name="autonomous_network">AUTONOMICZNA SIEĆ</string>
+    <string name="node_label">WĘZEŁ</string>
+    <string name="connected">POŁĄCZONO</string>
+    <string name="local_search">LOKALNE WYSZUKIWANIE</string>
+    <string name="node_count">%1$d WĘZŁÓW</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">Urządzenia w pobliżu</string>
+    <string name="nearby_hint">Otwórz PARALINK na innym pobliskim urządzeniu z Androidem, udziel uprawnienia do urządzeń w pobliżu i nie zamykaj tego ekranu.</string>
+    <string name="connect">POŁĄCZ</string>
+
+    <string name="messenger">Komunikator</string>
+    <string name="transport_hint">Bezpośredni lokalny szyfrowany kanał</string>
+    <string name="message_hint">Wiadomość</string>
+    <string name="send">Wyślij</string>
+
+    <string name="push_to_talk">NACIŚNIJ I MÓW</string>
+    <string name="transmitting">NADAWANIE</string>
+    <string name="hold_to_talk">PRZYTRZYMAJ, ABY MÓWIĆ</string>
+    <string name="radio_hint">Audio działa tylko lokalnie. Podczas etapu prototypu trzymaj aplikację na pierwszym planie.</string>
+
+    <string name="wallet_title">PORTFEL PARALINK</string>
+    <string name="offline_ledger">Lokalna księga bez połączenia z siecią</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">Saldo lokalne</string>
+
+    <string name="identity">TOŻSAMOŚĆ</string>
+    <string name="relay">PRZEKAŹNIK</string>
+    <string name="ready">GOTOWY</string>
+
+    <string name="settings">Ustawienia</string>
+    <string name="translation_settings">Tłumaczenie</string>
+    <string name="app_language">Język aplikacji</string>
+    <string name="communication_language">Mój język komunikacji</string>
+    <string name="translate_incoming_to">Tłumacz wiadomości przychodzące na</string>
+    <string name="target_language">Język docelowy</string>
+    <string name="auto_translation">Automatyczne tłumaczenie</string>
+    <string name="auto_detect_language">Automatycznie wykrywaj język</string>
+    <string name="show_original">Pokaż oryginał</string>
+    <string name="translate_voice">Tłumacz głos</string>
+    <string name="translate_ptt">Tłumacz push-to-talk</string>
+    <string name="call_captions">Napisy rozmowy</string>
+    <string name="display_mode">Tryb wyświetlania</string>
+    <string name="display_both">Oryginał + tłumaczenie</string>
+    <string name="display_original_only">Tylko oryginał</string>
+    <string name="display_translation_only">Tylko tłumaczenie</string>
+    <string name="on">WŁ.</string>
+    <string name="off">WYŁ.</string>
+
+    <string name="original">Oryginał</string>
+    <string name="translated">Tłumaczenie</string>
+    <string name="original_label">Oryginał:</string>
+    <string name="translated_label">Tłumaczenie:</string>
+    <string name="you">TY</string>
+    <string name="translate">Tłumacz</string>
+    <string name="voice_original_label">Oryginalna transkrypcja:</string>
+    <string name="voice_translation_label">Tłumaczenie:</string>
+    <string name="no_translation_available">Tłumaczenie niedostępne</string>
+    <string name="translating">Tłumaczenie…</string>
+
+    <string name="translation_unavailable">Tłumaczenie offline dla tego języka nie jest dostępne w tej wersji.</string>
+    <string name="language_uncertain">Język niepewny</string>
+    <string name="detected_language_title">Wykryto język:</string>
+    <string name="use_language">UŻYJ</string>
+    <string name="change_language">ZMIEŃ</string>
+</resources>

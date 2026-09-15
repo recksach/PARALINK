@@ -1,0 +1,444 @@
+#pair uk	de
+#lex
+я	ich	-0.4
+я	ich bin	-1.2
+мене	mich	-1.5
+мені	mir	-1.6
+ти	du	-0.4
+ти	du bist	-1.0
+ви	ihr	-1.0
+ми	wir	-0.8
+він	er	-0.7
+вона	sie	-0.8
+воно	es	-0.9
+вони	sie	-0.8
+ми	uns	-1.2
+твій	dein	-1.4
+мій	mein	-1.3
+наш	unser	-1.5
+привіт	hallo	-0.6
+привіт	hi	-0.9
+добрий день	guten tag	-0.7
+доброго ранку	guten morgen	-1.0
+добрий вечір	guten abend	-1.1
+як справи	wie geht es dir	-0.9
+як ти	wie geht es dir	-1.1
+як ви	wie geht es ihnen	-1.3
+добре	es geht	-1.1
+добре	gut	-1.4
+гарно	gut	-1.5
+погано	schlecht	-1.2
+непогано	nicht schlecht	-1.2
+дякую	danke	-0.7
+дуже дякую	vielen dank	-1.0
+будь ласка	bitte	-0.8
+ласкаво просимо	willkommen	-1.4
+так	ja	-0.6
+так	doch	-1.6
+ні	nein	-0.6
+не знаю	ich weiß nicht	-1.0
+не знаю	keine ahnung	-1.5
+знаю	ich weiß	-1.2
+зрозумів	verstanden	-1.1
+зрозуміло	verstanden	-1.3
+немає проблем	kein problem	-1.2
+я розумію	ich verstehe	-1.2
+не розумію	ich verstehe nicht	-1.2
+говори повільніше	sprich bitte langsamer	-1.5
+ще раз	noch einmal	-1.3
+повторити	bitte wiederholen	-1.5
+де ти	wo bist du	-1.0
+я тут	ich bin hier	-1.1
+я йду	ich komme	-1.0
+я йду	ich gehe	-1.2
+йди сюди	komm hierher	-1.3
+приходь	komm	-1.2
+чекай	warte	-1.3
+чекай на мене	warte auf mich	-1.4
+ти чуєш мене	hörst du mich	-1.3
+чуєш	hörst du	-1.2
+я чую	ich höre	-1.2
+виклик	ruf an	-1.6
+виклик	notruf	-1.8
+допомога	hilfe	-0.9
+допоможи мені	hilf mir bitte	-1.1
+нам потрібна допомога	wir brauchen hilfe	-1.3
+поранений	verletzt	-1.2
+поранений	verwundet	-1.6
+мені потрібен лікар	ich brauche einen arzt	-1.3
+лікар	arzt	-1.5
+швидка	krankenwagen	-1.6
+обережно	vorsicht	-1.4
+небезпека	gefahr	-1.2
+небезпечно	es ist gefährlich	-1.5
+ризик	risiko	-1.6
+не рухайся	beweg dich nicht	-1.4
+стій	halt	-1.4
+небезпечна зона	gefahrenzone	-1.7
+сховище	schutzraum	-1.6
+сховище	unterstand	-1.8
+евокуація	evakuierung	-1.7
+ми безпечні	wir sind in sicherheit	-1.5
+все гаразд	alles ist gut	-1.1
+все гаразд	alles gut	-1.0
+не хвилюйся	keine sorge	-1.1
+не хвилюйся	mach dir keine sorgen	-1.4
+спокійно	ruhig	-1.4
+це важливо	das ist wichtig	-1.3
+вода	wasser	-1.2
+їжа	essen	-1.2
+їжа	lebensmittel	-1.6
+продукти	lebensmittel	-1.4
+батарея	akku	-1.2
+акумулятор	akku	-1.3
+заряди батарею	lade den akku auf	-1.4
+немає сигналу	kein signal	-1.3
+зв'язок	verbindung	-1.4
+канал	kanal	-1.7
+радіо	radio	-1.4
+частота	frequenz	-1.8
+де ти зараз	wo bist du gerade	-1.2
+коли	wann	-1.4
+скільки	wie viel	-1.3
+скільки	wie viele	-1.4
+де	wo	-1.3
+хто	wer	-1.5
+що	was	-1.5
+як	wie	-1.3
+чому	warum	-1.5
+вдома	zu hause	-1.3
+зараз	jetzt	-1.2
+зараз	gerade	-1.4
+сьогодні	heute	-1.2
+сьогодні ввечері	heute abend	-1.4
+завтра	morgen	-1.0
+завтра вранці	morgen früh	-1.3
+вчора	gestern	-1.0
+післязавтра	übermorgen	-1.7
+ранок	morgen	-1.5
+ранок	der morgen	-1.6
+день	tag	-1.5
+ніч	nacht	-1.5
+вечір	abend	-1.6
+годину	eine stunde	-1.6
+хвилину	eine minute	-1.7
+я зайнятий	ich bin beschäftigt	-1.4
+я вільний	ich bin frei	-1.5
+мені треба йти	ich muss gehen	-1.3
+давай зустрінемось	lass uns treffen	-1.4
+де ми зустрінемось	wo treffen wir uns	-1.4
+зустрінемось там	treffen wir uns dort	-1.6
+тут	hier	-1.1
+там	dort	-1.2
+поруч	in der nähe	-1.4
+далеко	weit weg	-1.7
+праворуч	rechts	-1.6
+ліворуч	links	-1.6
+прямо	geradeaus	-1.6
+вперед	vorwärts	-1.6
+поверни праворуч	bis rechts	-1.8
+поверни ліворуч	bis links	-1.8
+через міст	über die brücke	-1.7
+міст	brücke	-1.7
+дорога	straße	-1.4
+дорога	weg	-1.6
+я на дорозі	ich bin unterwegs	-1.4
+затримка	verzögerung	-1.8
+усе нормально	es ist alles in ordnung	-1.5
+я в порядку	mir geht es gut	-1.3
+я в порядку	ich bin okay	-1.3
+звісно	natürlich	-1.4
+можливо	vielleicht	-1.3
+напевно	wahrscheinlich	-1.5
+швидко	schnell	-1.4
+повільно	langsam	-1.4
+зараз не можу	ich kann gerade nicht	-1.6
+можу	ich kann	-1.5
+не можу	ich kann nicht	-1.4
+хочеш	willst du	-1.2
+хочеш	möchtest du	-1.3
+так хочеш	ja gerne	-1.6
+звичайно хочу	sehr gerne	-1.6
+спілкуватися	sprechen	-1.6
+напиши мені	schreib mir	-1.3
+пишу	ich schreibe	-1.5
+прочитав	gelesen	-1.8
+смішно	witze	-1.8
+жарт	witz	-1.8
+лови мене	warte auf mich	-1.5
+я побачив тебе	ich habe dich gesehen	-1.5
+я бачу тебе	ich sehe dich	-1.3
+ти тут	du bist hier	-1.3
+ти там	du bist dort	-1.5
+де всі	wo ist jeder	-1.7
+де всі	wo seid ihr	-1.7
+пора збиратись	es ist zeit zu gehen	-1.7
+повертайся	komm zurück	-1.6
+я повернусь	ich komme zurück	-1.4
+принеси	bring	-1.5
+принеси мені	bring mir	-1.4
+бери	nimm	-1.5
+дай	gib	-1.4
+дай мені	gib mir	-1.2
+тримай	halte	-1.5
+the quick brown fox jumps over the lazy dog	der schnelle braune fuchs springt über den faulen hund	-1.8
+я вчора зустрів людину	ich habe gestern einen menschen getroffen	-1.5
+я вчора зустріч людину	ich habe gestern einen menschen getroffen	-1.8
+вчора зустріч людину	habe ich gestern einen menschen getroffen	-1.7
+Я вчера встретил человека	ich habe gestern einen menschen getroffen	-1.5
+вчера встретил человека	habe ich gestern einen menschen getroffen	-1.7
+я вчера встретил	ich habe gestern	-1.0
+вчера встретил	habe ich gestern	-1.2
+встретил	getroffen	-0.9
+встретил человека	getroffen hat	-1.6
+человека	einen menschen	-0.9
+человека	den mann	-1.3
+людину	einen menschen	-1.1
+людину	den mann	-1.5
+который сказал	der gesagt hat	-1.0
+который сказал	welcher sagte	-1.6
+який сказав	der gesagt hat	-1.1
+який сказав	welcher sagte	-1.7
+сказал	sagte	-0.8
+сказал	gesagt hat	-1.0
+сказав	sagte	-0.9
+сказав	gesagt hat	-1.1
+сказал что	gesagt dass	-1.7
+что	dass	-0.5
+що	dass	-0.6
+приедет	wird ankommen	-1.3
+приедет morgen kommt	-1.5
+приїде	wird ankommen	-1.4
+приедет завтра	er kommt morgen	-1.3
+приїде завтра	er kommt morgen	-1.4
+что приедет завтра	dass er morgen kommt	-1.1
+що приїде завтра	dass er morgen kommt	-1.2
+завтра	morgen	-0.6
+завтра	am morgen	-1.6
+я человек	ich bin ein mensch	-1.5
+человек	mensch	-1.2
+человек	mann	-1.4
+друг	freund	-1.3
+друже	freund	-1.4
+товариш	kamerad	-1.5
+команда	team	-1.6
+підрозділ	einheit	-1.8
+позиція	position	-1.7
+місце	ort	-1.5
+точка	punkt	-1.8
+#bigram
+ich habe	-1.1
+habe ich	-1.2
+ich bin	-1.0
+wie geht	-1.2
+geht es	-1.1
+es dir	-1.6
+es dir gut	-1.8
+ich weiß	-1.2
+weiß nicht	-1.4
+ich sehe	-1.4
+dich	-1.5
+dich hier	-1.6
+du bist	-1.2
+du bist hier	-1.5
+du bist dort	-1.7
+wir brauchen	-1.3
+brauchen hilfe	-1.6
+hilfe	-1.5
+keine	sorge	-1.6
+keine ahnung	-1.7
+kein problem	-1.4
+ich komme	-1.3
+komm zurück	-1.6
+komm hierher	-1.7
+warte auf mich	-1.4
+ich gehe	-1.5
+wo bist du	-1.1
+wo bist du gerade	-1.5
+wo seid ihr	-1.5
+ich bin unterwegs	-1.5
+ich bin	beschäftigt	-1.8
+ich bin	frei	-1.8
+ich muss	-1.4
+muss gehen	-1.5
+gehen	-1.7
+morgen	-1.8
+morgen früh	-1.5
+heute abend	-1.6
+gestern abend	-1.8
+ich konnte	-1.8
+sehr gut	-1.6
+alles gut	-1.1
+alles ist gut	-1.4
+ist gut	-1.5
+ist in ordnung	-1.6
+in ordnung	-1.4
+nicht schlecht	-1.5
+keine sorge	-1.1
+macht dir	-1.7
+dir keine	-1.9
+das ist	-1.3
+ist wichtig	-1.7
+es ist	-1.4
+ist kalt	-1.8
+ist heiß	-1.8
+es schneit	-1.8
+es regnet	-1.7
+das wetter	-1.7
+sehr schön	-1.5
+heute morgen	-1.7
+gestern morgen	-1.8
+der mann	-1.6
+ein mann	-1.5
+ein mensch	-1.4
+der mensch	-1.6
+die menschen	-1.5
+er kommt	-1.3
+kommt morgen	-1.5
+er kommt morgen	-1.4
+kommt heute	-1.7
+gesagt hat	-1.3
+hat gesagt	-1.4
+dass er	-1.3
+er morgen	-1.8
+morgen kommt	-1.7
+wird ankommen	-1.7
+sagte	-1.6
+der gesagt	-1.8
+den gesagt	-1.9
+gestern einen	-1.7
+einen menschen	-1.3
+menschen getroffen	-1.6
+getroffen der	-1.8
+getroffen hat	-1.6
+ich habe gestern	-1.4
+habe gestern	-1.9
+gestern einen	-1.7
+#unigram
+ich	-2.4
+du	-2.5
+er	-2.4
+sie	-2.3
+wir	-2.2
+ihr	-2.8
+es	-2.7
+hallo	-2.8
+danke	-2.9
+bitte	-2.7
+ja	-2.5
+nein	-2.6
+immer	-2.9
+nicht	-2.6
+gut	-2.5
+schlecht	-2.8
+hier	-2.5
+dort	-2.7
+jetzt	-2.6
+heute	-2.7
+gestern	-2.9
+morgen	-2.6
+wann	-2.9
+wo	-2.8
+wer	-3.0
+was	-2.9
+wie	-2.8
+warum	-3.1
+dein	-3.2
+mein	-3.0
+ein	-2.8
+eine	-2.9
+der	-2.6
+die	-2.5
+das	-2.6
+den	-2.8
+mit	-2.9
+und	-2.4
+aber	-3.0
+wenn	-2.9
+dass	-3.0
+kann	-2.7
+kannst	-3.1
+will	-3.0
+willst	-3.1
+muss	-3.0
+weiß	-2.9
+sag	-3.1
+sagt	-3.1
+komm	-2.9
+komme	-3.1
+geh	-3.0
+gehe	-3.1
+bleib	-3.2
+bleibst	-3.3
+halt	-3.2
+stopp	-3.0
+hilfe	-3.1
+hierher	-3.3
+weg	-2.9
+wieder	-3.1
+haben	-2.9
+hat	-2.8
+habe	-2.7
+wurde	-3.2
+sein	-3.0
+sind	-2.6
+bist	-2.8
+ist	-2.4
+bin	-2.8
+wir	-2.2
+mich	-2.8
+mir	-2.9
+dich	-2.9
+uns	-2.8
+euch	-3.2
+ihnen	-3.2
+kein	-3.0
+keine	-2.9
+schon	-2.9
+noch	-2.9
+mal	-3.0
+etwas	-3.0
+vielleicht	-3.1
+wahrscheinlich	-3.2
+wichtig	-3.1
+gefahr	-3.3
+vorsicht	-3.3
+sicherheit	-3.2
+wasser	-3.2
+essen	-3.2
+akku	-3.3
+signal	-3.4
+verbindung	-3.4
+kanal	-3.5
+radio	-3.5
+frequenz	-3.8
+arzt	-3.4
+krankenwagen	-3.6
+brücke	-3.5
+straße	-3.1
+weg	-2.9
+rechts	-3.3
+links	-3.3
+geradeaus	-3.4
+vorwärts	-3.5
+ort	-3.2
+position	-3.3
+punkt	-3.4
+team	-3.8
+einheit	-3.9
+kamerad	-3.8
+freund	-3.2
+mensch	-3.1
+mann	-2.8
+frau	-3.1
+kinder	-3.2
+kind	-3.3
+menschen	-3.0
+gesagt	-3.0
+sagte	-3.3
+getroffen	-3.2
+treffen	-3.1
+ankommen	-3.3
+morgen	-2.6
+kommen	-2.9
+gehe	-3.1

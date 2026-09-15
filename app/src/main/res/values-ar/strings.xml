@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">الشبكة</string>
+    <string name="tab_chat">الدردشة</string>
+    <string name="tab_radio">الراديو</string>
+    <string name="tab_wallet">المحفظة</string>
+    <string name="tab_profile">الملف الشخصي</string>
+
+    <string name="autonomous_network">شبكة مستقلة</string>
+    <string name="node_label">عقدة</string>
+    <string name="connected">متصل</string>
+    <string name="local_search">بحث محلي</string>
+    <string name="node_count">%1$d عقدة</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">الأجهزة القريبة</string>
+    <string name="nearby_hint">افتح PARALINK على جهاز Android قريب آخر، وامنح إذن الأجهزة القريبة، وأبقِ هذه الشاشة مفتوحة.</string>
+    <string name="connect">اتصال</string>
+
+    <string name="messenger">المراسلة</string>
+    <string name="transport_hint">نقل محلي مشفر مباشر</string>
+    <string name="message_hint">رسالة</string>
+    <string name="send">إرسال</string>
+
+    <string name="push_to_talk">اضغط للتحدث</string>
+    <string name="transmitting">جارٍ الإرسال</string>
+    <string name="hold_to_talk">اضغط باستمرار للتحدث</string>
+    <string name="radio_hint">النقل الصوتي محلي فقط. أبقِ التطبيق في المقدمة خلال مرحلة النموذج الأولي.</string>
+
+    <string name="wallet_title">محفظة PARALINK</string>
+    <string name="offline_ledger">دفتر حسابات محلي دون اتصال أولاً</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">الرصيد المحلي</string>
+
+    <string name="identity">الهوية</string>
+    <string name="relay">مرحّل</string>
+    <string name="ready">جاهز</string>
+
+    <string name="settings">الإعدادات</string>
+    <string name="translation_settings">الترجمة</string>
+    <string name="app_language">لغة التطبيق</string>
+    <string name="communication_language">لغة التواصل الخاصة بي</string>
+    <string name="translate_incoming_to">ترجمة الرسائل الواردة إلى</string>
+    <string name="target_language">اللغة المستهدفة</string>
+    <string name="auto_translation">الترجمة التلقائية</string>
+    <string name="auto_detect_language">كشف اللغة تلقائيًا</string>
+    <string name="show_original">إظهار الأصل</string>
+    <string name="translate_voice">ترجمة الصوت</string>
+    <string name="translate_ptt">ترجمة الضغط للتحدث</string>
+    <string name="call_captions">تسميات توضيحية للمكالمات</string>
+    <string name="display_mode">وضع العرض</string>
+    <string name="display_both">الأصل + الترجمة</string>
+    <string name="display_original_only">الأصل فقط</string>
+    <string name="display_translation_only">الترجمة فقط</string>
+    <string name="on">تشغيل</string>
+    <string name="off">إيقاف</string>
+
+    <string name="original">الأصل</string>
+    <string name="translated">الترجمة</string>
+    <string name="original_label">الأصل:</string>
+    <string name="translated_label">الترجمة:</string>
+    <string name="you">أنت</string>
+    <string name="translate">ترجمة</string>
+    <string name="voice_original_label">النص الأصلي:</string>
+    <string name="voice_translation_label">الترجمة:</string>
+    <string name="no_translation_available">لا توجد ترجمة متاحة</string>
+    <string name="translating">جارٍ الترجمة…</string>
+
+    <string name="translation_unavailable">الترجمة دون اتصال لهذه اللغة غير متوفرة في هذا الإصدار.</string>
+    <string name="language_uncertain">اللغة غير مؤكدة</string>
+    <string name="detected_language_title">اللغة المكتشفة:</string>
+    <string name="use_language">استخدم</string>
+    <string name="change_language">تغيير</string>
+</resources>

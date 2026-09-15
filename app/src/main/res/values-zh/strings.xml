@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">网络</string>
+    <string name="tab_chat">聊天</string>
+    <string name="tab_radio">对讲机</string>
+    <string name="tab_wallet">钱包</string>
+    <string name="tab_profile">个人资料</string>
+
+    <string name="autonomous_network">自主网络</string>
+    <string name="node_label">节点</string>
+    <string name="connected">已连接</string>
+    <string name="local_search">本地搜索</string>
+    <string name="node_count">%1$d 个节点</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">附近的设备</string>
+    <string name="nearby_hint">在附近另一台 Android 设备上打开 PARALINK，授予“附近的设备”权限，并保持此屏幕打开。</string>
+    <string name="connect">连接</string>
+
+    <string name="messenger">信使</string>
+    <string name="transport_hint">直接本地加密传输</string>
+    <string name="message_hint">消息</string>
+    <string name="send">发送</string>
+
+    <string name="push_to_talk">按住通话</string>
+    <string name="transmitting">正在传输</string>
+    <string name="hold_to_talk">按住说话</string>
+    <string name="radio_hint">音频传输仅限本地。在原型阶段请保持应用在前台运行。</string>
+
+    <string name="wallet_title">PARALINK 钱包</string>
+    <string name="offline_ledger">离线优先的本地账本</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">本地余额</string>
+
+    <string name="identity">身份</string>
+    <string name="relay">中继</string>
+    <string name="ready">就绪</string>
+
+    <string name="settings">设置</string>
+    <string name="translation_settings">翻译</string>
+    <string name="app_language">应用语言</string>
+    <string name="communication_language">我的交流语言</string>
+    <string name="translate_incoming_to">将收到的消息翻译为</string>
+    <string name="target_language">目标语言</string>
+    <string name="auto_translation">自动翻译</string>
+    <string name="auto_detect_language">自动检测语言</string>
+    <string name="show_original">显示原文</string>
+    <string name="translate_voice">翻译语音</string>
+    <string name="translate_ptt">翻译按住通话</string>
+    <string name="call_captions">通话字幕</string>
+    <string name="display_mode">显示模式</string>
+    <string name="display_both">原文 + 翻译</string>
+    <string name="display_original_only">仅原文</string>
+    <string name="display_translation_only">仅翻译</string>
+    <string name="on">开</string>
+    <string name="off">关</string>
+
+    <string name="original">原文</string>
+    <string name="translated">翻译</string>
+    <string name="original_label">原文:</string>
+    <string name="translated_label">翻译:</string>
+    <string name="you">你</string>
+    <string name="translate">翻译</string>
+    <string name="voice_original_label">原始转录:</string>
+    <string name="voice_translation_label">翻译:</string>
+    <string name="no_translation_available">没有可用的翻译</string>
+    <string name="translating">正在翻译…</string>
+
+    <string name="translation_unavailable">此构建不支持该语言的离线翻译。</string>
+    <string name="language_uncertain">语言不确定</string>
+    <string name="detected_language_title">检测到的语言:</string>
+    <string name="use_language">使用</string>
+    <string name="change_language">更改</string>
+</resources>

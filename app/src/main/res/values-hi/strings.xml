@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">नेटवर्क</string>
+    <string name="tab_chat">चैट</string>
+    <string name="tab_radio">रेडियो</string>
+    <string name="tab_wallet">वॉलेट</string>
+    <string name="tab_profile">प्रोफ़ाइल</string>
+
+    <string name="autonomous_network">स्वायत्त नेटवर्क</string>
+    <string name="node_label">नोड</string>
+    <string name="connected">कनेक्टेड</string>
+    <string name="local_search">स्थानीय खोज</string>
+    <string name="node_count">%1$d नोड</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">आस-पास के डिवाइस</string>
+    <string name="nearby_hint">आस-पास किसी अन्य Android पर PARALINK खोलें, आस-पास के डिवाइस की अनुमति दें और इस स्क्रीन को खुला रखें।</string>
+    <string name="connect">कनेक्ट करें</string>
+
+    <string name="messenger">मैसेंजर</string>
+    <string name="transport_hint">सीधा स्थानीय एन्क्रिप्टेड संचरण</string>
+    <string name="message_hint">संदेश</string>
+    <string name="send">भेजें</string>
+
+    <string name="push_to_talk">बोलने के लिए दबाएं</string>
+    <string name="transmitting">प्रसारित कर रहा है</string>
+    <string name="hold_to_talk">बोलने के लिए दबाए रखें</string>
+    <string name="radio_hint">ऑडियो ट्रांसपोर्ट केवल स्थानीय है। प्रोटोटाइप चरण के दौरान ऐप को फ़ोरग्राउंड में रखें।</string>
+
+    <string name="wallet_title">PARALINK वॉलेट</string>
+    <string name="offline_ledger">ऑफ़लाइन-प्रथम स्थानीय लेज़र</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">स्थानीय शेष</string>
+
+    <string name="identity">पहचान</string>
+    <string name="relay">रिले</string>
+    <string name="ready">तैयार</string>
+
+    <string name="settings">सेटिंग्स</string>
+    <string name="translation_settings">अनुवाद</string>
+    <string name="app_language">ऐप की भाषा</string>
+    <string name="communication_language">मेरी संचार भाषा</string>
+    <string name="translate_incoming_to">आने वाले संदेशों का अनुवाद करें</string>
+    <string name="target_language">लक्ष्य भाषा</string>
+    <string name="auto_translation">स्वचालित अनुवाद</string>
+    <string name="auto_detect_language">भाषा का स्वतः पता लगाएं</string>
+    <string name="show_original">मूल दिखाएं</string>
+    <string name="translate_voice">वॉइस का अनुवाद करें</string>
+    <string name="translate_ptt">पुश-टू-टॉक का अनुवाद करें</string>
+    <string name="call_captions">कॉल कैप्शन</string>
+    <string name="display_mode">प्रदर्शन मोड</string>
+    <string name="display_both">मूल + अनुवाद</string>
+    <string name="display_original_only">केवल मूल</string>
+    <string name="display_translation_only">केवल अनुवाद</string>
+    <string name="on">चालू</string>
+    <string name="off">बंद</string>
+
+    <string name="original">मूल</string>
+    <string name="translated">अनुवादित</string>
+    <string name="original_label">मूल:</string>
+    <string name="translated_label">अनुवादित:</string>
+    <string name="you">आप</string>
+    <string name="translate">अनुवाद करें</string>
+    <string name="voice_original_label">मूल प्रतिलेख:</string>
+    <string name="voice_translation_label">अनुवाद:</string>
+    <string name="no_translation_available">कोई अनुवाद उपलब्ध नहीं है</string>
+    <string name="translating">अनुवाद हो रहा है…</string>
+
+    <string name="translation_unavailable">इस भाषा के लिए ऑफ़लाइन अनुवाद इस बिल्ड में उपलब्ध नहीं है।</string>
+    <string name="language_uncertain">भाषा अनिश्चित है</string>
+    <string name="detected_language_title">पता लगाई गई भाषा:</string>
+    <string name="use_language">उपयोग करें</string>
+    <string name="change_language">बदलें</string>
+</resources>

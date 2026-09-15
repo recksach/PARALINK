@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">Red</string>
+    <string name="tab_chat">Chat</string>
+    <string name="tab_radio">Radio</string>
+    <string name="tab_wallet">Cartera</string>
+    <string name="tab_profile">Perfil</string>
+
+    <string name="autonomous_network">RED AUTÓNOMA</string>
+    <string name="node_label">NODO</string>
+    <string name="connected">CONECTADO</string>
+    <string name="local_search">BÚSQUEDA LOCAL</string>
+    <string name="node_count">%1$d NODOS</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">Dispositivos cercanos</string>
+    <string name="nearby_hint">Abre PARALINK en otro Android cercano, concede el permiso de dispositivos cercanos y mantén esta pantalla abierta.</string>
+    <string name="connect">CONECTAR</string>
+
+    <string name="messenger">Mensajería</string>
+    <string name="transport_hint">Transporte local cifrado directo</string>
+    <string name="message_hint">Mensaje</string>
+    <string name="send">Enviar</string>
+
+    <string name="push_to_talk">PULSAR PARA HABLAR</string>
+    <string name="transmitting">TRANSMITIENDO</string>
+    <string name="hold_to_talk">MANTENER PARA HABLAR</string>
+    <string name="radio_hint">El transporte de audio es solo local. Mantén la aplicación en primer plano durante la etapa de prototipo.</string>
+
+    <string name="wallet_title">CARTERA PARALINK</string>
+    <string name="offline_ledger">Libro mayor local sin conexión</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">Saldo local</string>
+
+    <string name="identity">IDENTIDAD</string>
+    <string name="relay">REPETIDOR</string>
+    <string name="ready">LISTO</string>
+
+    <string name="settings">Ajustes</string>
+    <string name="translation_settings">Traducción</string>
+    <string name="app_language">Idioma de la aplicación</string>
+    <string name="communication_language">Mi idioma de comunicación</string>
+    <string name="translate_incoming_to">Traducir los mensajes entrantes a</string>
+    <string name="target_language">Idioma de destino</string>
+    <string name="auto_translation">Traducción automática</string>
+    <string name="auto_detect_language">Detectar idioma automáticamente</string>
+    <string name="show_original">Mostrar original</string>
+    <string name="translate_voice">Traducir voz</string>
+    <string name="translate_ptt">Traducir push-to-talk</string>
+    <string name="call_captions">Subtítulos de llamadas</string>
+    <string name="display_mode">Modo de visualización</string>
+    <string name="display_both">Original + traducción</string>
+    <string name="display_original_only">Solo original</string>
+    <string name="display_translation_only">Solo traducción</string>
+    <string name="on">ACTIVADO</string>
+    <string name="off">DESACTIVADO</string>
+
+    <string name="original">Original</string>
+    <string name="translated">Traducción</string>
+    <string name="original_label">Original:</string>
+    <string name="translated_label">Traducción:</string>
+    <string name="you">TÚ</string>
+    <string name="translate">Traducir</string>
+    <string name="voice_original_label">Transcripción original:</string>
+    <string name="voice_translation_label">Traducción:</string>
+    <string name="no_translation_available">No hay traducción disponible</string>
+    <string name="translating">Traduciendo…</string>
+
+    <string name="translation_unavailable">La traducción sin conexión para este idioma no está disponible en esta compilación.</string>
+    <string name="language_uncertain">Idioma incierto</string>
+    <string name="detected_language_title">Idioma detectado:</string>
+    <string name="use_language">USAR</string>
+    <string name="change_language">CAMBIAR</string>
+</resources>

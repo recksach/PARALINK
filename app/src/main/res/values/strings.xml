@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">Network</string>
+    <string name="tab_chat">Chat</string>
+    <string name="tab_radio">Radio</string>
+    <string name="tab_wallet">Wallet</string>
+    <string name="tab_profile">Profile</string>
+
+    <string name="autonomous_network">AUTONOMOUS NETWORK</string>
+    <string name="node_label">NODE</string>
+    <string name="connected">CONNECTED</string>
+    <string name="local_search">LOCAL SEARCH</string>
+    <string name="node_count">%1$d NODES</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">Nearby devices</string>
+    <string name="nearby_hint">Open PARALINK on another Android nearby, grant Nearby devices permission, and keep this screen open.</string>
+    <string name="connect">CONNECT</string>
+
+    <string name="messenger">Messenger</string>
+    <string name="transport_hint">Direct local encrypted transport</string>
+    <string name="message_hint">Message</string>
+    <string name="send">Send</string>
+
+    <string name="push_to_talk">PUSH TO TALK</string>
+    <string name="transmitting">TRANSMITTING</string>
+    <string name="hold_to_talk">HOLD TO TALK</string>
+    <string name="radio_hint">Audio transport is local-only. Keep the app in foreground during the prototype stage.</string>
+
+    <string name="wallet_title">PARALINK WALLET</string>
+    <string name="offline_ledger">Offline-first local ledger</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">Local balance</string>
+
+    <string name="identity">IDENTITY</string>
+    <string name="relay">RELAY</string>
+    <string name="ready">READY</string>
+
+    <string name="settings">Settings</string>
+    <string name="translation_settings">Translation</string>
+    <string name="app_language">App Language</string>
+    <string name="communication_language">My Communication Language</string>
+    <string name="translate_incoming_to">Translate Incoming Messages To</string>
+    <string name="target_language">Target Language</string>
+    <string name="auto_translation">Auto Translation</string>
+    <string name="auto_detect_language">Auto Detect Language</string>
+    <string name="show_original">Show Original</string>
+    <string name="translate_voice">Translate Voice</string>
+    <string name="translate_ptt">Translate Push-to-Talk</string>
+    <string name="call_captions">Call Captions</string>
+    <string name="display_mode">Display mode</string>
+    <string name="display_both">Original + Translation</string>
+    <string name="display_original_only">Original only</string>
+    <string name="display_translation_only">Translation only</string>
+    <string name="on">ON</string>
+    <string name="off">OFF</string>
+
+    <string name="original">Original</string>
+    <string name="translated">Translated</string>
+    <string name="original_label">Original:</string>
+    <string name="translated_label">Translated:</string>
+    <string name="you">YOU</string>
+    <string name="translate">Translate</string>
+    <string name="voice_original_label">Original transcript:</string>
+    <string name="voice_translation_label">Translation:</string>
+    <string name="no_translation_available">No translation available</string>
+    <string name="translating">Translating…</string>
+
+    <string name="translation_unavailable">Offline translation for this language is not available in this build.</string>
+    <string name="language_uncertain">Language uncertain</string>
+    <string name="detected_language_title">Detected language:</string>
+    <string name="use_language">USE</string>
+    <string name="change_language">CHANGE</string>
+</resources>

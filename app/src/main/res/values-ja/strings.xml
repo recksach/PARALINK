@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PARALINK</string>
+
+    <string name="tab_network">ネットワーク</string>
+    <string name="tab_chat">チャット</string>
+    <string name="tab_radio">ラジオ</string>
+    <string name="tab_wallet">ウォレット</string>
+    <string name="tab_profile">プロフィール</string>
+
+    <string name="autonomous_network">自律ネットワーク</string>
+    <string name="node_label">ノード</string>
+    <string name="connected">接続済み</string>
+    <string name="local_search">ローカル検索</string>
+    <string name="node_count">%1$d ノード</string>
+    <string name="wifi_direct_label">Wi-Fi Direct:</string>
+    <string name="wifi_aware_label">Wi-Fi Aware:</string>
+    <string name="nearby_devices">近くのデバイス</string>
+    <string name="nearby_hint">近くの別のAndroidでPARALINKを開き、「近くのデバイス」の権限を許可して、この画面を開いたままにしてください。</string>
+    <string name="connect">接続</string>
+
+    <string name="messenger">メッセンジャー</string>
+    <string name="transport_hint">直接ローカル暗号化転送</string>
+    <string name="message_hint">メッセージ</string>
+    <string name="send">送信</string>
+
+    <string name="push_to_talk">押してトーク</string>
+    <string name="transmitting">送信中</string>
+    <string name="hold_to_talk">押しながらトーク</string>
+    <string name="radio_hint">音声転送はローカルのみです。プロトタイプ段階ではアプリを前面で開いたままにしてください。</string>
+
+    <string name="wallet_title">PARALINKウォレット</string>
+    <string name="offline_ledger">オフライン優先のローカル台帳</string>
+    <string name="para_credits">PARA CREDITS</string>
+    <string name="local_balance">ローカル残高</string>
+
+    <string name="identity">アイデンティティ</string>
+    <string name="relay">リレー</string>
+    <string name="ready">準備完了</string>
+
+    <string name="settings">設定</string>
+    <string name="translation_settings">翻訳</string>
+    <string name="app_language">アプリの言語</string>
+    <string name="communication_language">コミュニケーション言語</string>
+    <string name="translate_incoming_to">受信メッセージの翻訳先</string>
+    <string name="target_language">翻訳先言語</string>
+    <string name="auto_translation">自動翻訳</string>
+    <string name="auto_detect_language">言語の自動検出</string>
+    <string name="show_original">原文を表示</string>
+    <string name="translate_voice">音声を翻訳</string>
+    <string name="translate_ptt">プッシュトゥトークを翻訳</string>
+    <string name="call_captions">通話キャプション</string>
+    <string name="display_mode">表示モード</string>
+    <string name="display_both">原文＋翻訳</string>
+    <string name="display_original_only">原文のみ</string>
+    <string name="display_translation_only">翻訳のみ</string>
+    <string name="on">オン</string>
+    <string name="off">オフ</string>
+
+    <string name="original">原文</string>
+    <string name="translated">翻訳</string>
+    <string name="original_label">原文:</string>
+    <string name="translated_label">翻訳:</string>
+    <string name="you">あなた</string>
+    <string name="translate">翻訳</string>
+    <string name="voice_original_label">元の文字起こし:</string>
+    <string name="voice_translation_label">翻訳:</string>
+    <string name="no_translation_available">翻訳を利用できません</string>
+    <string name="translating">翻訳中…</string>
+
+    <string name="translation_unavailable">この言語のオフライン翻訳は、このビルドでは利用できません。</string>
+    <string name="language_uncertain">言語が不明です</string>
+    <string name="detected_language_title">検出された言語:</string>
+    <string name="use_language">使用</string>
+    <string name="change_language">変更</string>
+</resources>
