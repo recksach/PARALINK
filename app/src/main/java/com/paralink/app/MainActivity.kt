@@ -262,7 +262,7 @@ private fun ParalinkApp(
                     nodeId = nodeId,
                     name = displayName,
                     peers = peerDevices,
-                    knownNodes = knownNodes.map { it.nodeId },
+                    knownNodes = knownNodes.map { it.id },
                     caps = caps,
                     connected = connected,
                     error = lastError,

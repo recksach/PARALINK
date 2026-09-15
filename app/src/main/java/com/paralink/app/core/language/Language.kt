@@ -4,7 +4,7 @@ import java.util.Locale
 
 enum class Language(
     val code: String,
-    override val name: String,
+    val displayName: String,
     val nativeName: String,
     val flag: String
 ) {
