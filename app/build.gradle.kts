@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.paralink.app"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.paralink.app"
