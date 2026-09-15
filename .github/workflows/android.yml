@@ -25,10 +25,13 @@ jobs:
 
       - name: Set up Android SDK
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager --install "platform-tools" > /dev/null 2>&1 || true
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKM" ]; then SDKM="$ANDROID_HOME/cmdline-tools/bin/sdkmanager"; fi
+          echo "$(dirname "$SDKM")" >> "$GITHUB_PATH"
+          yes | "$SDKM" --licenses > /dev/null 2>&1 || true
+          "$SDKM" --install "platform-tools" > /dev/null 2>&1 || true
           echo "ANDROID_HOME=$ANDROID_HOME"
-          sdkmanager --version 2>&1 || true
+          "$SDKM" --version 2>&1 || true
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
