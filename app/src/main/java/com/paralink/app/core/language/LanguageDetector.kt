@@ -58,13 +58,19 @@ class LanguageDetector {
                 "The quick brown fox jumps over the lazy dog while the villagers watch from the window.",
                 "I would like to order a cup of coffee and something to eat this morning.",
                 "Hello my friend, how are you doing today? The weather is very nice.",
-                "Please remember to charge the phone because the battery is almost empty."
+                "Please remember to charge the phone because the battery is almost empty.",
+                "Last night we met an old friend in the park near the lake.",
+                "She said that she would arrive tomorrow if the weather is nice.",
+                "Yesterday I met a man who said he would come tomorrow."
             ),
             Language.UK to arrayOf(
                 "Привіт, як справи сьогодні? Погода дуже гарна і тепла.",
                 "Я хочу замовити каву та щось перекусити зранку.",
                 "Будь ласка, не забудь зарядити телефон, бо батарея майже порожня.",
-                "Швидка коричнева лисиця стрибає через ледачого собаку."
+                "Швидка коричнева лисиця стрибає через ледачого собаку.",
+                "Вчора ввечері ми зустріли старого друга біля нашого кафе на площі.",
+                "Вона сказала, що приїде завтра ввечері, коли закінчиться дощ.",
+                "Я вчора зустрів людину, яка сказала, що приїде завтра."
             ),
             Language.RU to arrayOf(
                 "Привет, как дела сегодня? Погода очень хорошая и тёплая.",
@@ -82,7 +88,10 @@ class LanguageDetector {
                 "Hallo, wie geht es dir heute? Das Wetter ist sehr schön und warm.",
                 "Ich möchte einen Kaffee und etwas zu essen bestellen.",
                 "Bitte vergiss nicht, das Telefon aufzuladen, der Akku ist fast leer.",
-                "Der schnelle braune Fuchs springt über den faulen Hund."
+                "Der schnelle braune Fuchs springt über den faulen Hund.",
+                "Gestern Abend haben wir einen alten Freund am Platz getroffen.",
+                "Sie sagte, dass sie morgen ankommt, wenn das Wetter schön ist.",
+                "Ich habe gestern einen Menschen getroffen, der gesagt hat, dass er morgen kommt."
             ),
             Language.FR to arrayOf(
                 "Bonjour, comment ça va aujourd'hui ? Il fait très beau et chaud.",

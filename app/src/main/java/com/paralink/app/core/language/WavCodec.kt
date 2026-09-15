@@ -56,16 +56,16 @@ object WavCodec {
         while (true) {
             val chunk = ByteArray(4)
             inStream.readFully(chunk)
-            val size = inStream.readInt()
+            val size = readLeInt(inStream)
             val name = String(chunk, Charsets.US_ASCII)
             if (name == "fmt ") {
-                val format = inStream.readShort().toInt()
-                var channels = inStream.readShort().toInt()
-                val rate = inStream.readInt()
+                val format = readLeShort(inStream).toInt()
+                var channels = readLeShort(inStream).toInt()
+                val rate = readLeInt(inStream)
                 inStream.readInt()
                 inStream.readShort()
                 inStream.readShort()
-                var bits = inStream.readShort().toInt()
+                var bits = readLeShort(inStream).toInt()
                 if (size > 16) inStream.skip((size - 16).toLong())
                 if (format != 1) {
                     channels = 1
@@ -80,13 +80,17 @@ object WavCodec {
     private fun readData(inStream: DataInputStream, info: WavInfo): WavInfo {
         val chunk = ByteArray(4)
         inStream.readFully(chunk)
-        val size = inStream.readInt()
+        val size = readLeInt(inStream)
         if (String(chunk, Charsets.US_ASCII) == "data") {
             return WavInfo(info.sampleRate, info.channels, info.bitsPerSample, size, durationMillis(info.sampleRate, size, info.channels, info.bitsPerSample))
         }
         inStream.skip(size.toLong())
         return readData(inStream, info)
     }
+
+    private fun readLeInt(inStream: DataInputStream): Int = Integer.reverseBytes(inStream.readInt())
+
+    private fun readLeShort(inStream: DataInputStream): Short = Integer.reverseBytes(inStream.readShort())
 
     fun extractPcm(data: ByteArray): ByteArray {
         val info = parseWav(data)
