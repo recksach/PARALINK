@@ -90,7 +90,7 @@ object WavCodec {
 
     private fun readLeInt(inStream: DataInputStream): Int = Integer.reverseBytes(inStream.readInt())
 
-    private fun readLeShort(inStream: DataInputStream): Short = Integer.reverseBytes(inStream.readShort())
+    private fun readLeShort(inStream: DataInputStream): Short = Integer.reverseBytes(inStream.readShort().toInt()).toShort()
 
     fun extractPcm(data: ByteArray): ByteArray {
         val info = parseWav(data)
