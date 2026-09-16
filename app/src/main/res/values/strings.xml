@@ -16,7 +16,7 @@
     <string name="wifi_direct_label">Wi-Fi Direct:</string>
     <string name="wifi_aware_label">Wi-Fi Aware:</string>
     <string name="nearby_devices">Nearby devices</string>
-    <string name="nearby_hint">Open PARALINK on another Android nearby, grant Nearby devices permission, and keep this screen open.</string>
+    <string name="nearby_hint">Open PARALINK on another Android nearby, grant the Nearby devices permission, and keep this screen open. On the same Wi-Fi network you can also connect by IP.</string>
     <string name="connect">CONNECT</string>
 
     <string name="messenger">Messenger</string>
@@ -33,6 +33,21 @@
     <string name="offline_ledger">Offline-first local ledger</string>
     <string name="para_credits">PARA CREDITS</string>
     <string name="local_balance">Local balance</string>
+
+    <string name="earn_rate">Earning +1.0 PARA/min per link (%1$d links)</string>
+    <string name="earn_offline">Connect to a node to start earning PARA</string>
+    <string name="transfer">Transfer PARA</string>
+    <string name="transfer_to">To node</string>
+    <string name="amount">Amount</string>
+    <string name="note">Note</string>
+    <string name="history">History</string>
+    <string name="received">Received</string>
+    <string name="sent">Sent</string>
+    <string name="earned">Earned</string>
+    <string name="mesh_nodes">MESH NODES</string>
+    <string name="connect_ip">CONNECT BY IP</string>
+    <string name="connect_ip_hint">IP address, e.g. 192.168.1.5</string>
+    <string name="manual_connect">CONNECT</string>
 
     <string name="identity">IDENTITY</string>
     <string name="relay">RELAY</string>

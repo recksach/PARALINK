@@ -40,12 +40,14 @@ import com.paralink.app.core.model.STATUS_NONE
 import com.paralink.app.core.model.STATUS_PENDING
 import com.paralink.app.core.model.STATUS_TRANSLATED
 import com.paralink.app.core.model.STATUS_UNAVAILABLE
+import com.paralink.app.core.storage.LedgerStore
 import com.paralink.app.core.storage.LocalMessageStore
 import com.paralink.app.ui.ChatScreen
 import com.paralink.app.ui.NetworkScreen
 import com.paralink.app.ui.ProfileScreen
 import com.paralink.app.ui.RadioScreen
 import com.paralink.app.ui.WalletScreen
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -63,8 +65,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var p2p: P2PNetworkManager
     private lateinit var store: LocalMessageStore
     private lateinit var language: LanguageManager
+    private lateinit var ledger: LedgerStore
 
-    private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
+    private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        p2p.restartDiscovery()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,12 +79,13 @@ class MainActivity : ComponentActivity() {
         val displayName = getSharedPreferences("paralink_profile", MODE_PRIVATE)
             .getString("name", "NODE-${nodeId.takeLast(4)}") ?: "NODE-${nodeId.takeLast(4)}"
         language = buildLanguageManager()
+        ledger = LedgerStore(this)
         p2p = P2PNetworkManager(this, nodeId, displayName)
         requestPermissions()
         p2p.start()
         setContent {
             MaterialTheme(colorScheme = ParalinkScheme) {
-                ParalinkApp(nodeId, displayName, WifiCapabilities(this), p2p, store, language)
+                ParalinkApp(nodeId, displayName, WifiCapabilities(this), p2p, store, language, ledger)
             }
         }
     }
@@ -131,7 +137,8 @@ private fun ParalinkApp(
     caps: WifiCapabilities,
     p2p: P2PNetworkManager,
     store: LocalMessageStore,
-    language: LanguageManager
+    language: LanguageManager,
+    ledger: LedgerStore
 ) {
     var tab by remember { mutableStateOf(Tab.NETWORK) }
     var peerDevices by remember { mutableStateOf(p2p.peers()) }
@@ -142,7 +149,20 @@ private fun ParalinkApp(
     var messages by remember { mutableStateOf(store.all()) }
     var voiceMessages by remember { mutableStateOf(store.allVoices()) }
     var playingVoiceId by remember { mutableStateOf<String?>(null) }
+    var walletBalance by remember { mutableStateOf(ledger.currentBalance(System.currentTimeMillis())) }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            walletBalance = ledger.currentBalance(System.currentTimeMillis())
+            delay(1000)
+        }
+    }
+
+    LaunchedEffect(knownNodes.size) {
+        ledger.setConnectedCount(knownNodes.size)
+        walletBalance = ledger.currentBalance(System.currentTimeMillis())
+    }
 
     val sendText: (String) -> Unit = { text ->
         val id = System.nanoTime().toString()
@@ -178,8 +198,14 @@ private fun ParalinkApp(
                     peerDevices = p2p.peers()
                     knownNodes = p2p.knownNodes()
                 }
-                P2PNetworkManager.Type.CONNECTED -> connected = true
-                P2PNetworkManager.Type.DISCONNECTED -> connected = false
+                P2PNetworkManager.Type.CONNECTED -> {
+                    connected = true
+                    knownNodes = p2p.knownNodes()
+                }
+                P2PNetworkManager.Type.DISCONNECTED -> {
+                    connected = false
+                    knownNodes = p2p.knownNodes()
+                }
                 P2PNetworkManager.Type.MESSAGE -> {
                     val n = event.node
                     val text = event.text.orEmpty()
@@ -206,6 +232,13 @@ private fun ParalinkApp(
                             ))
                             messages = store.all()
                         }
+                    }
+                }
+                P2PNetworkManager.Type.TOKEN -> {
+                    val n = event.node
+                    if (n != null && event.tokenAmount > 0) {
+                        ledger.credit(event.tokenAmount, n.id, event.tokenNote ?: "")
+                        walletBalance = ledger.currentBalance(System.currentTimeMillis())
                     }
                 }
                 P2PNetworkManager.Type.VOICE -> {
@@ -271,7 +304,8 @@ private fun ParalinkApp(
                         peerDevices = p2p.peers()
                         knownNodes = p2p.knownNodes()
                     },
-                    connect = { device -> p2p.connect(device) }
+                    connect = { device -> p2p.connect(device) },
+                    connectIp = { ip -> p2p.connectToIp(ip) }
                 )
                 Tab.CHAT -> ChatScreen(
                     messages = messages,
@@ -289,7 +323,16 @@ private fun ParalinkApp(
                     onPlayVoice = playVoice,
                     playingVoiceId = playingVoiceId
                 )
-                Tab.WALLET -> WalletScreen()
+                Tab.WALLET -> WalletScreen(
+                    balance = walletBalance,
+                    connected = connected,
+                    peerCount = knownNodes.size + (if (connected) 1 else 0),
+                    peers = p2p.knownNodes(),
+                    history = ledger.transactions(),
+                    onTransfer = { peerId, amount, note ->
+                        ledger.debit(amount, peerId, note).also { if (it) p2p.sendToken(peerId, amount, note) }
+                    }
+                )
                 Tab.PROFILE -> ProfileScreen(nodeId, displayName, connected, language)
             }
         }

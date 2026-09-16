@@ -26,11 +26,22 @@ class P2PNetworkManager(
     private val nodeId: String,
     private val displayName: String
 ) {
-    companion object { const val PORT = 49152 }
+    companion object {
+        const val PORT = 49152
+        const val UDP_PORT = 49151
+    }
 
     data class Node(val id: String, val name: String, val address: String?, val connected: Boolean)
-    data class Event(val type: Type, val node: Node? = null, val text: String? = null, val wavB64: String? = null, val durationMs: Long = 0)
-    enum class Type { PEERS, CONNECTED, MESSAGE, VOICE, DISCONNECTED, ERROR }
+    data class Event(
+        val type: Type,
+        val node: Node? = null,
+        val text: String? = null,
+        val wavB64: String? = null,
+        val durationMs: Long = 0,
+        val tokenAmount: Double = 0.0,
+        val tokenNote: String? = null
+    )
+    enum class Type { PEERS, CONNECTED, MESSAGE, VOICE, TOKEN, DISCONNECTED, ERROR }
 
     private val manager = context.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
     private val channel = manager.initialize(context, context.mainLooper, null)
@@ -42,21 +53,30 @@ class P2PNetworkManager(
     private val writers = ConcurrentHashMap<String, BufferedWriter>()
     private val linkPeers = ConcurrentHashMap<String, String>()
     private val networkKeys = ConcurrentHashMap<String, String>()
+    private val nodeNames = ConcurrentHashMap<String, String>()
     private val pairwise = ConcurrentHashMap<String, SecretKeySpec>()
     private val seenIds = ConcurrentHashMap.newKeySet<String>()
+    private val beaconCooldown = ConcurrentHashMap<String, Long>()
 
     private var server: ServerSocket? = null
+    private var udpSocket: DatagramSocket? = null
     private var groupInfo: WifiP2pGroup? = null
     private var listener: ((Event) -> Unit)? = null
     private var peerDevices = emptyList<WifiP2pDevice>()
+
+    private val discoveryLock = Any()
+    private var discoveryRunning = false
+    private val beaconLock = Any()
+    private var beaconRunning = false
 
     fun setListener(l: (Event) -> Unit) { listener = l }
 
     fun start() {
         registerReceiver()
-        startPeerDiscovery()
+        startDiscovery()
         ensureServer()
         announce()
+        startBeacon()
     }
 
     fun stop() {
@@ -64,6 +84,8 @@ class P2PNetworkManager(
         receiver = null
         runCatching { server?.close() }
         server = null
+        runCatching { udpSocket?.close() }
+        udpSocket = null
         sockets.values.forEach { runCatching { it.close() } }
         sockets.clear(); writers.clear(); linkPeers.clear(); networkKeys.clear(); pairwise.clear()
         scope.cancel()
@@ -86,7 +108,7 @@ class P2PNetworkManager(
     fun knownNodes(): List<Node> = networkKeys.keys
         .filter { it != nodeId }
         .sorted()
-        .map { Node(it, it, null, true) }
+        .map { Node(it, nodeNames[it] ?: it, null, true) }
 
     fun sendText(text: String) {
         val clean = text.trim()
@@ -100,21 +122,40 @@ class P2PNetworkManager(
         sendEncrypted(PacketKinds.VOICE, body.toByteArray(Charsets.UTF_8), visual = previewText)
     }
 
-    private fun sendEncrypted(kind: String, plain: ByteArray, visual: String) {
-        val targets = networkKeys.keys.filter { it != nodeId }
+    fun sendToken(targetId: String, amount: Double, note: String) {
+        if (amount <= 0 || targetId == nodeId) return
+        val cleaned = note?.replace('|', ' ').orEmpty()
+        val body = "PAY|${displayName.replace('|','_')}|${UUID.randomUUID()}|${System.currentTimeMillis()}|$amount|$cleaned"
+        sendEncrypted(PacketKinds.PAY, body.toByteArray(Charsets.UTF_8), visual = "PAY $amount", target = targetId)
+    }
+
+    private fun sendEncrypted(kind: String, plain: ByteArray, visual: String, target: String? = null) {
+        val targets = if (target != null) listOf(target) else networkKeys.keys.filter { it != nodeId }
         if (targets.isEmpty()) {
             emit(Event(Type.ERROR, text = "No peers known yet. Open PARALINK on a nearby device first."))
             return
         }
         scope.launch {
-            targets.forEach { target ->
+            targets.forEach { t ->
                 runCatching {
-                    val key = pairwiseKey(target)
+                    val key = pairwiseKey(t)
                     val encrypted = crypto.encrypt(key, plain)
-                    val packet = MeshPacket(kind, UUID.randomUUID().toString(), nodeId, target, RelayCore.MAX_TTL, encrypted)
+                    val packet = MeshPacket(kind, UUID.randomUUID().toString(), nodeId, t, RelayCore.MAX_TTL, encrypted)
                     broadcast(packet)
                 }.onFailure { emit(Event(Type.ERROR, text = "Send failed: ${it.message}")) }
             }
+        }
+    }
+
+    fun connectToIp(address: String) {
+        scope.launch {
+            delay(300)
+            runCatching {
+                val socket = Socket()
+                socket.tcpNoDelay = true
+                socket.connect(InetSocketAddress(address, PORT), 5000)
+                attachSocket("manual-$address", socket)
+            }.onFailure { emit(Event(Type.ERROR, text = "Connection failed: $address ${it.message}")) }
         }
     }
 
@@ -127,14 +168,6 @@ class P2PNetworkManager(
                 socket.connect(InetSocketAddress(address, PORT), 5000)
                 attachSocket("$address:$PORT", socket)
             }.onFailure { emit(Event(Type.ERROR, text = "Connection failed: ${it.message}")) }
-        }
-    }
-
-    fun publishCurrentGroupOwnerAddressIfClient() {
-        if (!hasPermission()) return
-        manager.requestGroupInfo(channel) { group ->
-            groupInfo = group
-            if (!group.isGroupOwner) connectToGroupOwner("192.168.49.1")
         }
     }
 
@@ -152,7 +185,12 @@ class P2PNetworkManager(
                 when (intent.action) {
                     WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> requestPeers()
                     WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> requestGroupInfo()
-                    WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> Unit
+                    WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> {
+                        val state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
+                        if (state == WifiP2pManager.WIFI_P2P_STATE_DISABLED) {
+                            emit(Event(Type.ERROR, text = "Wi-Fi Direct is off. Enable Wi-Fi to discover nearby devices."))
+                        }
+                    }
                 }
             }
         }
@@ -165,12 +203,33 @@ class P2PNetworkManager(
         if (Build.VERSION.SDK_INT >= 33) context.registerReceiver(r, f, Context.RECEIVER_NOT_EXPORTED) else @Suppress("DEPRECATION") context.registerReceiver(r, f)
     }
 
-    private fun startPeerDiscovery() {
+    fun startDiscovery() {
         if (!hasPermission()) return
-        manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() = Unit
-            override fun onFailure(reason: Int) { emit(Event(Type.ERROR, text = "Discovery failed: $reason")) }
-        })
+        synchronized(discoveryLock) {
+            if (discoveryRunning) return
+            discoveryRunning = true
+        }
+        scope.launch {
+            while (isActive) {
+                runCatching {
+                    manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
+                        override fun onSuccess() = Unit
+                        override fun onFailure(reason: Int) {
+                            if (reason == WifiP2pManager.P2P_UNSUPPORTED) {
+                                emit(Event(Type.ERROR, text = "Wi-Fi Direct is not supported on this device. Enable Wi-Fi or use Connect by IP."))
+                            }
+                        }
+                    })
+                }
+                delay(15000)
+            }
+        }
+    }
+
+    fun restartDiscovery() {
+        if (receiver == null) registerReceiver()
+        startDiscovery()
+        startBeacon()
     }
 
     private fun requestPeers() {
@@ -209,6 +268,68 @@ class P2PNetworkManager(
         }
     }
 
+    private fun startBeacon() {
+        synchronized(beaconLock) {
+            if (beaconRunning) return
+            beaconRunning = true
+        }
+        scope.launch {
+            runCatching {
+                val ds = DatagramSocket(null)
+                ds.reuseAddress = true
+                ds.broadcast = true
+                ds.bind(InetSocketAddress(UDP_PORT))
+                udpSocket = ds
+                while (isActive) {
+                    runCatching { sendBeacon() }
+                    delay(3000)
+                }
+            }
+        }
+        scope.launch {
+            val buf = ByteArray(2048)
+            while (isActive) {
+                val ds = udpSocket ?: break
+                if (ds.isClosed) break
+                runCatching {
+                    val p = DatagramPacket(buf, buf.size)
+                    ds.receive(p)
+                    val msg = String(p.data, 0, p.length, Charsets.UTF_8)
+                    handleBeacon(msg, p.address.hostAddress)
+                }
+            }
+        }
+    }
+
+    private fun sendBeacon() {
+        val payload = "BEACON|$nodeId|${displayName.replace('|','_')}|$PORT".toByteArray(Charsets.UTF_8)
+        val s = DatagramSocket()
+        s.broadcast = true
+        runCatching {
+            s.send(DatagramPacket(payload, payload.size, InetAddress.getByName("255.255.255.255"), UDP_PORT))
+        }
+        runCatching { s.close() }
+    }
+
+    private fun handleBeacon(msg: String, fromAddr: String) {
+        val parts = msg.split('|')
+        if (parts.size < 4 || parts[0] != "BEACON" || parts[1] == nodeId) return
+        val senderId = parts[1]
+        val senderName = parts[2]
+        val senderPort = parts[3].toIntOrNull() ?: PORT
+        nodeNames[senderId] = senderName
+        if (networkKeys.containsKey(senderId)) return
+        val now = System.currentTimeMillis()
+        if (now - (beaconCooldown.getOrDefault(senderId, 0L)) < 30000) return
+        beaconCooldown[senderId] = now
+        runCatching {
+            val socket = Socket()
+            socket.tcpNoDelay = true
+            socket.connect(InetSocketAddress(fromAddr, senderPort), 4000)
+            attachSocket("lan-$senderId", socket)
+        }
+    }
+
     private fun attachSocket(key: String, socket: Socket) {
         scope.launch {
             try {
@@ -230,7 +351,7 @@ class P2PNetworkManager(
                 runCatching { socket.close() }
                 val peer = linkPeers[key]
                 sockets.remove(key); writers.remove(key); linkPeers.remove(key)
-                if (peer != null) emit(Event(Type.DISCONNECTED, Node(peer, peer, null, false)))
+                if (peer != null) emit(Event(Type.DISCONNECTED, Node(peer, nodeNames[peer] ?: peer, null, false)))
             }
         }
     }
@@ -244,14 +365,14 @@ class P2PNetworkManager(
         when (packet.kind) {
             PacketKinds.HELLO -> {
                 networkKeys[packet.src] = packet.payload
-                emit(Event(Type.CONNECTED, Node(packet.src, nodeNameFor(packet.src), null, true)))
+                emit(Event(Type.CONNECTED, Node(packet.src, nodeNames[packet.src] ?: packet.src, null, true)))
+                emit(Event(Type.PEERS))
                 if (RelayCore.shouldForward(packet, nodeId)) broadcast(RelayCore.nextHop(packet))
             }
             else -> {
                 val mine = RelayCore.shouldDeliverLocally(packet, nodeId)
                 if (mine) {
                     val peerKey = networkKeys[packet.src]
-                    if (packet.kind == PacketKinds.HELLO) return
                     if (peerKey != null) {
                         runCatching {
                             val key = pairwiseKey(packet.src)
@@ -265,7 +386,7 @@ class P2PNetworkManager(
         }
     }
 
-    private fun nodeNameFor(nodeId: String): String = nodeId
+    private fun nodeNameFor(nodeId: String): String = nodeNames[nodeId] ?: nodeId
 
     private fun deliverDecrypted(packet: MeshPacket, plain: ByteArray) {
         val text = plain.toString(Charsets.UTF_8)
@@ -273,14 +394,24 @@ class P2PNetworkManager(
         when (packet.kind) {
             PacketKinds.TXT -> {
                 if (parts.size >= 6 && parts[0] == "TXT") {
-                    emit(Event(Type.MESSAGE, Node(packet.src, parts[1], null, true), parts[5]))
+                    nodeNames[packet.src] = parts[1]
+                    emit(Event(Type.MESSAGE, Node(packet.src, parts[1], null, true), text = parts[5]))
                 }
             }
             PacketKinds.VOICE -> {
                 if (parts.size >= 6 && parts[0] == "VOICE") {
+                    nodeNames[packet.src] = parts[1]
                     val dur = parts[4].toLongOrNull() ?: 0L
                     val wav = parts[5]
                     emit(Event(Type.VOICE, Node(packet.src, parts[1], null, true), wavB64 = wav, durationMs = dur))
+                }
+            }
+            PacketKinds.PAY -> {
+                if (parts.size >= 6 && parts[0] == "PAY") {
+                    nodeNames[packet.src] = parts[1]
+                    val amount = parts[4].toDoubleOrNull() ?: 0.0
+                    val note = parts[5]
+                    emit(Event(Type.TOKEN, Node(packet.src, parts[1], null, true), text = parts[1], tokenAmount = amount, tokenNote = note))
                 }
             }
         }

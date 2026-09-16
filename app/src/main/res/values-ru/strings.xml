@@ -16,7 +16,7 @@
     <string name="wifi_direct_label">Wi-Fi Direct:</string>
     <string name="wifi_aware_label">Wi-Fi Aware:</string>
     <string name="nearby_devices">Устройства рядом</string>
-    <string name="nearby_hint">Откройте PARALINK на другом рядом находящемся устройстве Android, предоставьте разрешение "Устройства рядом" и держите этот экран открытым.</string>
+    <string name="nearby_hint">Откройте PARALINK на другом Android рядом, дайте разрешение «Устройства рядом» и держите этот экран открытым. В одной Wi-Fi-сети подключитесь по IP-адресу.</string>
     <string name="connect">ПОДКЛЮЧИТЬСЯ</string>
 
     <string name="messenger">Мессенджер</string>
@@ -33,6 +33,21 @@
     <string name="offline_ledger">Локальный реестр без интернета</string>
     <string name="para_credits">PARA CREDITS</string>
     <string name="local_balance">Локальный баланс</string>
+
+    <string name="earn_rate">Начисление +1.0 PARA/мин за связь (%1$d связей)</string>
+    <string name="earn_offline">Подключитесь к узлу, чтобы начать зарабатывать PARA</string>
+    <string name="transfer">Перевод PARA</string>
+    <string name="transfer_to">Узел</string>
+    <string name="amount">Сумма</string>
+    <string name="note">Примечание</string>
+    <string name="history">История</string>
+    <string name="received">Получено</string>
+    <string name="sent">Отправлено</string>
+    <string name="earned">Начислено</string>
+    <string name="mesh_nodes">УЗЛЫ СЕТИ</string>
+    <string name="connect_ip">ПОДКЛЮЧЕНИЕ ПО IP</string>
+    <string name="connect_ip_hint">IP-адрес, напр. 192.168.1.5</string>
+    <string name="manual_connect">ПОДКЛЮЧИТЬ</string>
 
     <string name="identity">ЛИЧНОСТЬ</string>
     <string name="relay">РЕЛЕ</string>
