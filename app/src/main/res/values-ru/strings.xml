@@ -52,6 +52,16 @@
     <string name="connect_ip">ПОДКЛЮЧЕНИЕ ПО IP</string>
     <string name="connect_ip_hint">IP-адрес, напр. 192.168.1.5</string>
     <string name="manual_connect">ПОДКЛЮЧИТЬ</string>
+    <string name="own_network_title">СВОЯ ЛОКАЛЬНАЯ СЕТЬ НА АНТЕННАХ</string>
+    <string name="own_network_desc">Телефон-телефон напрямую через встроенные Wi-Fi-антенны. Без роутера, интернета и оператора.</string>
+    <string name="create_network">СОЗДАТЬ СВОЮ СЕТЬ (Я = ВЫШКА)</string>
+    <string name="stop_network">ОСТАНОВИТЬ СЕТЬ</string>
+    <string name="network_created_label">Твоя сеть — передай это второму телефону:</string>
+    <string name="network_password_label">Пароль:</string>
+    <string name="join_network">ПРИСОЕДИНИТЬСЯ К ЛОКАЛЬНОЙ СЕТИ</string>
+    <string name="network_name_hint">Имя сети (DIRECT-…)</string>
+    <string name="network_password_hint">Пароль</string>
+    <string name="join_button">ПРИСОЕДИНИТЬСЯ</string>
 
     <string name="identity">ЛИЧНОСТЬ</string>
     <string name="relay">РЕЛЕ</string>

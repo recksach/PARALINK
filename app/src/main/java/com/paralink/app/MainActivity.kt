@@ -153,6 +153,8 @@ private fun ParalinkApp(
     var channel by remember { mutableStateOf(p2p.currentChannel()) }
     var autoPairEnabled by remember { mutableStateOf(true) }
     var radarNodes by remember { mutableStateOf(p2p.radarNodes()) }
+    var ownNetwork by remember { mutableStateOf<String?>(null) }
+    var joinStatus by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -268,6 +270,15 @@ private fun ParalinkApp(
                     }
                 }
                 P2PNetworkManager.Type.ERROR -> lastError = event.text
+                P2PNetworkManager.Type.NETWORK -> {
+                    val t = event.text
+                    when {
+                        t == null -> { ownNetwork = null }
+                        t.startsWith("JOIN|") -> joinStatus = "Connecting to ${t.removePrefix("JOIN|")}…"
+                        t.startsWith("LINKED|") -> joinStatus = "Linked to ${t.removePrefix("LINKED|")} ✓"
+                        else -> ownNetwork = t
+                    }
+                }
             }
         }
         onDispose { WavPlayer.stop() }
@@ -321,7 +332,12 @@ private fun ParalinkApp(
                     onAutoPair = { enabled ->
                         autoPairEnabled = enabled
                         p2p.setAutoPair(enabled)
-                    }
+                    },
+                    ownNetwork = ownNetwork,
+                    onCreateNetwork = { p2p.createOwnNetwork() },
+                    onStopNetwork = { p2p.stopOwnNetwork() },
+                    joinStatus = joinStatus,
+                    onJoinNetwork = { ssid, pass -> p2p.wifiJoinNetwork(ssid, pass) }
                 )
                 Tab.CHAT -> ChatScreen(
                     messages = messages,

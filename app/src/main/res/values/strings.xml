@@ -52,6 +52,16 @@
     <string name="connect_ip">CONNECT BY IP</string>
     <string name="connect_ip_hint">IP address, e.g. 192.168.1.5</string>
     <string name="manual_connect">CONNECT</string>
+    <string name="own_network_title">OWN LOCAL ANTENNA NETWORK</string>
+    <string name="own_network_desc">Phone-to-phone through built-in Wi-Fi antennas. No router, no internet, no carrier.</string>
+    <string name="create_network">CREATE OWN NETWORK (ME = HOTSPOT)</string>
+    <string name="stop_network">STOP NETWORK</string>
+    <string name="network_created_label">Your network — give these to the other phone:</string>
+    <string name="network_password_label">Password:</string>
+    <string name="join_network">JOIN LOCAL NETWORK</string>
+    <string name="network_name_hint">Network name (DIRECT-…)</string>
+    <string name="network_password_hint">Password</string>
+    <string name="join_button">JOIN</string>
 
     <string name="identity">IDENTITY</string>
     <string name="relay">RELAY</string>

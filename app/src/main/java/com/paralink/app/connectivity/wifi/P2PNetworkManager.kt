@@ -3,6 +3,8 @@ package com.paralink.app.connectivity.wifi
 import android.Manifest
 import android.content.*
 import android.content.pm.PackageManager
+import android.net.wifi.WifiConfiguration
+import android.net.wifi.WifiManager
 import android.net.wifi.WpsInfo
 import android.net.wifi.p2p.*
 import android.os.Build
@@ -44,7 +46,7 @@ class P2PNetworkManager(
         val tokenAmount: Double = 0.0,
         val tokenNote: String? = null
     )
-    enum class Type { PEERS, CONNECTED, MESSAGE, VOICE, TOKEN, DISCONNECTED, ERROR }
+    enum class Type { PEERS, CONNECTED, MESSAGE, VOICE, TOKEN, DISCONNECTED, ERROR, NETWORK }
 
     private val manager = context.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
     private val channel = manager.initialize(context, context.mainLooper, null)
@@ -206,6 +208,85 @@ class P2PNetworkManager(
         manager.requestGroupInfo(channel) { group ->
             groupInfo = group
             if (!group.isGroupOwner) connectToGroupOwner("192.168.49.1")
+        }
+    }
+
+    fun createOwnNetwork() {
+        if (!hasPermission()) {
+            emit(Event(Type.ERROR, text = "Grant nearby-device permission first"))
+            return
+        }
+        if (groupInfo != null) {
+            emit(Event(Type.ERROR, text = "Already own a network. Stop it first."))
+            return
+        }
+        manager.createGroup(channel, object : WifiP2pManager.ActionListener {
+            override fun onSuccess() {
+                manager.requestGroupInfo(channel) { group ->
+                    groupInfo = group
+                    val ssid = group?.networkName
+                    val pass = group?.passphrase
+                    emit(Event(Type.NETWORK, text = if (ssid != null && pass != null) "$ssid|$pass" else null))
+                }
+            }
+            override fun onFailure(reason: Int) {
+                emit(Event(Type.ERROR, text = "Create own network failed: $reason. Tablet/some devices can't host; try Join instead."))
+            }
+        })
+    }
+
+    fun stopOwnNetwork() {
+        if (!hasPermission()) return
+        runCatching {
+            manager.removeGroup(channel, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() { groupInfo = null; emit(Event(Type.NETWORK, text = null)) }
+                override fun onFailure(reason: Int) = Unit
+            })
+        }
+    }
+
+    fun wifiJoinNetwork(ssid: String, passphrase: String) {
+        scope.launch {
+            runCatching {
+                val wifi = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                @Suppress("DEPRECATION")
+                val config = WifiConfiguration().apply {
+                    SSID = "\"$ssid\""
+                    preSharedKey = "\"$passphrase\""
+                    status = WifiConfiguration.Status.ENABLED
+                    priority = 1000
+                }
+                @Suppress("DEPRECATION")
+                val id = wifi.addNetwork(config)
+                if (id == -1) {
+                    emit(Event(Type.ERROR, text = "Join failed: cannot add network $ssid"))
+                    return@launch
+                }
+                @Suppress("DEPRECATION")
+                val ok = wifi.disconnect() && wifi.enableNetwork(id, true)
+                @Suppress("DEPRECATION")
+                runCatching { wifi.reconnect() }
+                emit(Event(Type.NETWORK, text = "JOIN|$ssid"))
+                if (!ok) {
+                    emit(Event(Type.ERROR, text = "Join failed: cannot switch to $ssid"))
+                    return@launch
+                }
+                for (i in 1..12) {
+                    delay(4000)
+                    val connected = runCatching {
+                        val s = Socket()
+                        s.tcpNoDelay = true
+                        s.connect(InetSocketAddress("192.168.49.1", PORT), 3000)
+                        attachSocket("wifi-own-$ssid", s)
+                        true
+                    }.getOrDefault(false)
+                    if (connected) {
+                        emit(Event(Type.NETWORK, text = "LINKED|$ssid"))
+                        return@launch
+                    }
+                }
+                emit(Event(Type.ERROR, text = "Joined $ssid but host not found. Make sure the other phone runs PARALINK 'Create own network'."))
+            }.onFailure { emit(Event(Type.ERROR, text = "Join failed: ${it.message}")) }
         }
     }
 

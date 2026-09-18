@@ -43,9 +43,16 @@ fun NetworkScreen(
     connectIp: (String) -> Unit = {},
     radarNodes: List<P2PNetworkManager.RadarNode> = emptyList(),
     autoPair: Boolean = true,
-    onAutoPair: (Boolean) -> Unit = {}
+    onAutoPair: (Boolean) -> Unit = {},
+    ownNetwork: String? = null,
+    onCreateNetwork: () -> Unit = {},
+    onStopNetwork: () -> Unit = {},
+    joinStatus: String? = null,
+    onJoinNetwork: (String, String) -> Unit = { _, _ -> }
 ) {
     var ipInput by remember { mutableStateOf("") }
+    var joinSsid by remember { mutableStateOf("") }
+    var joinPass by remember { mutableStateOf("") }
     val liveCount = radarNodes.count { System.currentTimeMillis() - it.lastSeen < 10000 }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp)) {
         Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
@@ -68,6 +75,60 @@ fun NetworkScreen(
             Spacer(Modifier.weight(1f))
             Text(stringResource(R.string.auto_pair), fontSize = 11.sp, color = Color(0xFF7890AA))
             Switch(checked = autoPair, onCheckedChange = onAutoPair, modifier = Modifier.scale(0.8f))
+        }
+        Spacer(Modifier.height(12.dp))
+        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220))) {
+            Column(Modifier.padding(14.dp)) {
+                Text(stringResource(R.string.own_network_title), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.own_network_desc), fontSize = 11.sp, color = Color(0xFF7890AA))
+                Spacer(Modifier.height(10.dp))
+                if (ownNetwork != null) {
+                    val parts = ownNetwork.split("|")
+                    Text(stringResource(R.string.network_created_label), fontSize = 11.sp, color = Color(0xFF6F9BCC))
+                    Text("📡 ${parts.getOrElse(0) { "" }}", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.network_password_label) + " ${parts.getOrElse(1) { "" }}", color = Color(0xFF29D9FF))
+                    Spacer(Modifier.height(6.dp))
+                    Button(onClick = onStopNetwork, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.stop_network))
+                    }
+                } else {
+                    Button(onClick = onCreateNetwork, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.create_network))
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                HorizontalDivider(color = Color(0xFF162238))
+                Spacer(Modifier.height(12.dp))
+                Text(stringResource(R.string.join_network), fontSize = 11.sp, color = Color(0xFF6F9BCC))
+                OutlinedTextField(
+                    value = joinSsid,
+                    onValueChange = { joinSsid = it },
+                    label = { Text(stringResource(R.string.network_name_hint)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(6.dp))
+                OutlinedTextField(
+                    value = joinPass,
+                    onValueChange = { joinPass = it },
+                    label = { Text(stringResource(R.string.network_password_hint)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (joinStatus != null) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(joinStatus, fontSize = 12.sp, color = Color(0xFF29D9FF))
+                }
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        if (joinSsid.isNotBlank() && joinPass.isNotBlank()) {
+                            onJoinNetwork(joinSsid.trim(), joinPass.trim())
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text(stringResource(R.string.join_button)) }
+            }
         }
         Spacer(Modifier.height(12.dp))
         Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220))) {
