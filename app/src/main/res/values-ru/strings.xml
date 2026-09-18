@@ -142,4 +142,11 @@
     <string name="bluetooth_desc">Нет интернета? Телефоны связываются напрямую по Bluetooth. Радар, чаты и голосовые работают так же.</string>
     <string name="bluetooth_scan">НАЙТИ ПО BLUETOOTH</string>
     <string name="bluetooth_connect">ПОДКЛЮЧИТЬ</string>
+    <string name="attach">ВЛОЖЕНИЕ</string>
+    <string name="photo">ФОТО</string>
+    <string name="document">ДОКУМЕНТ</string>
+    <string name="file_open">ОТКРЫТЬ</string>
+    <string name="message_notification_title">Новое сообщение</string>
+    <string name="voice_notification_title">Голосовое сообщение</string>
+    <string name="file_notification_title">Новый файл</string>
 </resources>

@@ -33,6 +33,8 @@ object PacketKinds {
     const val TXT = "TXT"
     const val VOICE = "VOICE"
     const val PAY = "PAY"
+    const val FILE = "FILE"
+    const val FACK = "FACK"
 }
 
 object RelayCore {

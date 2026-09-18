@@ -22,11 +22,17 @@ import java.net.*
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.crypto.spec.SecretKeySpec
+import com.paralink.app.connectivity.bluetooth.BleTransport
 import com.paralink.app.core.crypto.MeshCrypto
 import com.paralink.app.core.mesh.MeshPacket
 import com.paralink.app.core.mesh.PacketCodec
 import com.paralink.app.core.mesh.PacketKinds
 import com.paralink.app.core.mesh.RelayCore
+import android.util.Base64
+import java.io.File
+import java.io.FileOutputStream
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.withTimeoutOrNull
 
 class P2PNetworkManager(
     private val context: Context,
@@ -40,7 +46,14 @@ class P2PNetworkManager(
         const val BEACON_TTL_MS = 20000L
         const val BT_UUID = "d133e46c-2e74-4e53-8c4e-7f2d3a1b9c00"
         const val MCAST_GROUP = "239.255.255.250"
+        const val FILE_PART_BYTES = 4096
     }
+
+    private class OutFile(
+        val metaId: String, val name: String, val mime: String, val bytes: ByteArray,
+        val target: String?, val deferred: CompletableDeferred<Long>
+    )
+    private class InFile(val metaId: String, val name: String, val mime: String, val expected: Long)
 
     data class Node(val id: String, val name: String, val address: String?, val connected: Boolean)
     data class RadarNode(val id: String, val name: String, val lastSeen: Long, val lat: Double = 0.0, val lon: Double = 0.0, val gold: Boolean = false, val badge: String? = null)
@@ -51,9 +64,13 @@ class P2PNetworkManager(
         val wavB64: String? = null,
         val durationMs: Long = 0,
         val tokenAmount: Double = 0.0,
-        val tokenNote: String? = null
+        val tokenNote: String? = null,
+        val filePath: String? = null,
+        val fileName: String? = null,
+        val fileSize: Long = 0,
+        val fileMime: String? = null
     )
-    enum class Type { PEERS, CONNECTED, MESSAGE, VOICE, TOKEN, DISCONNECTED, ERROR, NETWORK }
+    enum class Type { PEERS, CONNECTED, MESSAGE, VOICE, TOKEN, DISCONNECTED, ERROR, NETWORK, FILE }
 
     private val manager = context.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
     private val channel = manager.initialize(context, context.mainLooper, null)
@@ -88,6 +105,11 @@ class P2PNetworkManager(
     private val btFound = ConcurrentHashMap<String, String>()
     private var btServerSocket: BluetoothServerSocket? = null
     @Volatile private var btScanning = false
+    private var ble: BleTransport? = null
+    private val bleKnown = ConcurrentHashMap.newKeySet<String>()
+    private val outFiles = ConcurrentHashMap<String, OutFile>()
+    private val inFiles = ConcurrentHashMap<String, InFile>()
+    private val filesDir = File(context.filesDir, "paralink/files")
     private var listener: ((Event) -> Unit)? = null
     private var peerDevices = emptyList<WifiP2pDevice>()
 
@@ -129,6 +151,8 @@ class P2PNetworkManager(
         btServerSocket = null
         btSockets.values.forEach { runCatching { it.close() } }
         btSockets.clear(); btWriters.clear(); btFound.clear()
+        ble?.stop()
+        ble = null
         sockets.values.forEach { runCatching { it.close() } }
         sockets.clear(); writers.clear(); linkPeers.clear(); networkKeys.clear(); pairwise.clear()
         scope.cancel()
@@ -248,48 +272,93 @@ class P2PNetworkManager(
     }
 
     private fun sendEncrypted(kind: String, plain: ByteArray, visual: String, target: String? = null) {
-        scope.launch {
-            var targets = if (target != null) listOf(target) else networkKeys.keys.filter { it != nodeId }
-            if (target != null && !networkKeys.containsKey(target)) {
-                val t = target
-                nodeAddr[t]?.let { addr ->
-                    if (sockets.values.none { it.inetAddress?.hostAddress == addr }) {
-                        runCatching {
-                            val socket = Socket()
-                            socket.tcpNoDelay = true
-                            socket.connect(InetSocketAddress(addr, PORT), 4000)
-                            attachSocket("direct-$t", socket)
-                        }
-                    }
-                }
-                delay(900)
-            }
-            if (targets.isEmpty()) {
-                nodeAddr.entries.take(3).forEach { (id, addr) ->
+        scope.launch { sendEncryptedCore(kind, plain, visual, target) }
+    }
+
+    private suspend fun sendEncryptedCore(kind: String, plain: ByteArray, visual: String, target: String?) {
+        var targets = if (target != null) listOf(target) else networkKeys.keys.filter { it != nodeId }
+        if (target != null && !networkKeys.containsKey(target)) {
+            val t = target
+            nodeAddr[t]?.let { addr ->
+                if (sockets.values.none { it.inetAddress?.hostAddress == addr }) {
                     runCatching {
-                        if (sockets.values.none { it.inetAddress?.hostAddress == addr }) {
-                            val socket = Socket()
-                            socket.tcpNoDelay = true
-                            socket.connect(InetSocketAddress(addr, PORT), 4000)
-                            attachSocket("retry-$id", socket)
-                        }
+                        val socket = Socket()
+                        socket.tcpNoDelay = true
+                        socket.connect(InetSocketAddress(addr, PORT), 4000)
+                        attachSocket("direct-$t", socket)
                     }
                 }
-                delay(900)
-                targets = if (target != null) networkKeys.keys.filter { it == target } else networkKeys.keys.filter { it != nodeId }
             }
-            if (targets.isEmpty()) {
-                emit(Event(Type.ERROR, text = "No peers known yet. Open PARALINK on a nearby device first."))
-                return@launch
-            }
-            targets.forEach { t ->
+            delay(900)
+        }
+        if (targets.isEmpty()) {
+            nodeAddr.entries.take(3).forEach { (id, addr) ->
                 runCatching {
-                    val key = pairwiseKey(t)
-                    val encrypted = crypto.encrypt(key, plain)
-                    val packet = MeshPacket(kind, UUID.randomUUID().toString(), nodeId, t, RelayCore.MAX_TTL, encrypted)
-                    broadcast(packet)
-                }.onFailure { emit(Event(Type.ERROR, text = "Send failed: ${it.message}")) }
+                    if (sockets.values.none { it.inetAddress?.hostAddress == addr }) {
+                        val socket = Socket()
+                        socket.tcpNoDelay = true
+                        socket.connect(InetSocketAddress(addr, PORT), 4000)
+                        attachSocket("retry-$id", socket)
+                    }
+                }
             }
+            delay(900)
+            targets = if (target != null) networkKeys.keys.filter { it == target } else networkKeys.keys.filter { it != nodeId }
+        }
+        if (targets.isEmpty()) {
+            emit(Event(Type.ERROR, text = "No peers known yet. Open PARALINK on a nearby device first."))
+            return
+        }
+        targets.forEach { t ->
+            runCatching {
+                val key = pairwiseKey(t)
+                val encrypted = crypto.encrypt(key, plain)
+                val packet = MeshPacket(kind, UUID.randomUUID().toString(), nodeId, t, RelayCore.MAX_TTL, encrypted)
+                broadcast(packet)
+            }.onFailure { emit(Event(Type.ERROR, text = "Send failed: ${it.message}")) }
+        }
+    }
+
+    /**
+     * Sends a file to all peers (targetId == null) or to one peer. Streams
+     * FMETA + FCHUNK packets over the same encrypted mesh channel as text.
+     * Receive side answers with FACK so long transfers can resume.
+     */
+    fun sendFile(fileName: String, mime: String, bytes: ByteArray, targetId: String? = null) {
+        if (bytes.isEmpty()) return
+        scope.launch {
+            val cleanName = fileName.replace('|', '_').take(255)
+            val metaId = UUID.randomUUID().toString().replace("-", "").take(16)
+            val deferred = CompletableDeferred<Long>()
+            outFiles[metaId] = OutFile(metaId, cleanName, mime, bytes, targetId, deferred)
+            emit(Event(Type.FILE, text = metaId, fileName = cleanName, fileSize = bytes.size.toLong(), fileMime = mime))
+            sendEncryptedCore(
+                PacketKinds.FILE,
+                "FMETA|$metaId|$cleanName|${bytes.size}|$mime|$FILE_PART_BYTES".toByteArray(Charsets.UTF_8),
+                cleanName, targetId
+            )
+            val resumeOffset = runCatching { withTimeoutOrNull(3000) { deferred.await() } }.getOrNull() ?: 0L
+            var offset = resumeOffset
+            var sinceYield = 0
+            while (offset < bytes.size) {
+                val end = minOf(bytes.size.toLong(), offset + FILE_PART_BYTES).toInt()
+                val chunk = bytes.copyOfRange(offset.toInt(), end)
+                val b64 = Base64.encodeToString(chunk, Base64.NO_WRAP)
+                sendEncryptedCore(
+                    PacketKinds.FILE,
+                    "FCHUNK|$metaId|$offset|$b64".toByteArray(Charsets.UTF_8),
+                    cleanName, targetId
+                )
+                offset = end.toLong()
+                sinceYield++
+                if (sinceYield >= 8) { delay(2); sinceYield = 0 }
+            }
+            sendEncryptedCore(
+                PacketKinds.FILE,
+                "FDONE|$metaId|${bytes.size}".toByteArray(Charsets.UTF_8),
+                cleanName, targetId
+            )
+            outFiles.remove(metaId)
         }
     }
 
@@ -519,11 +588,16 @@ class P2PNetworkManager(
         if (btAdapter == null) return
         if (!hasBluetoothPermission()) return
         startBtServer()
+        startBle()
         scope.launch { connectBonded() }
     }
 
     fun connectBt(address: String) {
         if (!hasBluetoothPermission()) return
+        if (bleKnown.contains(address)) {
+            ble?.connect(address)
+            return
+        }
         scope.launch {
             runCatching {
                 val dev = btAdapter?.getRemoteDevice(address)
@@ -535,6 +609,31 @@ class P2PNetworkManager(
                 attachBt(address, socket)
             }.onFailure { emit(Event(Type.ERROR, text = "Bluetooth: ${it.message}")) }
         }
+    }
+
+    private fun startBle() {
+        if (!hasBluetoothPermission()) return
+        val current = ble
+        if (current != null) {
+            if (!current.available()) { ble = null } else return
+        }
+        val transport = BleTransport(context)
+        if (!transport.available()) return
+        ble = transport
+        transport.onLine = { line -> handleLine(line) }
+        transport.onLink = { addr ->
+            emit(Event(Type.PEERS))
+        }
+        transport.onLost = { addr ->
+            bleKnown.add(addr)
+            emit(Event(Type.PEERS))
+        }
+        transport.onFound = { devName, addr ->
+            bleKnown.add(addr)
+            btFound.putIfAbsent(addr, devName)
+            emit(Event(Type.PEERS))
+        }
+        transport.start()
     }
 
     fun startBluetoothDiscovery() {
@@ -611,7 +710,7 @@ class P2PNetworkManager(
         scope.launch {
             while (isActive) {
                 try {
-                    if (writers.isNotEmpty() || btWriters.isNotEmpty()) {
+                    if (writers.isNotEmpty() || btWriters.isNotEmpty() || (ble?.openAddresses()?.isNotEmpty() == true)) {
                         val packet = MeshPacket(PacketKinds.HELLO, UUID.randomUUID().toString(), nodeId, RelayCore.BROADCAST, RelayCore.MAX_TTL, crypto.myPublicKeyB64())
                         broadcast(packet)
                     }
@@ -804,7 +903,78 @@ class P2PNetworkManager(
                     emit(Event(Type.TOKEN, Node(packet.src, parts[1], null, true), text = parts[1], tokenAmount = amount, tokenNote = note))
                 }
             }
+            PacketKinds.FILE -> handleFilePacket(packet.src, parts)
+            PacketKinds.FACK -> {
+                if (parts.size >= 3 && parts[0] == "FACK") {
+                    val metaId = parts[1]
+                    val offset = parts[2].toLongOrNull() ?: 0L
+                    outFiles[metaId]?.deferred?.complete(offset)
+                }
+            }
         }
+    }
+
+    private fun handleFilePacket(src: String, parts: List<String>) {
+        when (parts.getOrNull(0)) {
+            "FMETA" -> {
+                if (parts.size < 6) return
+                val metaId = parts[1]
+                val name = parts[2]
+                val size = parts[3].toLongOrNull() ?: return
+                val mime = parts[4]
+                runCatching { filesDir.mkdirs() }
+                val part = File(filesDir, "$metaId.part")
+                val existing = if (part.exists()) part.length() else 0L
+                if (existing >= size) {
+                    finalizeFile(metaId, name, mime, size, src)
+                } else {
+                    inFiles[metaId] = InFile(metaId, name, mime, size)
+                    // tell the sender where we are so transfers resume after a reconnect
+                    sendEncrypted(PacketKinds.FACK, "FACK|$metaId|$existing".toByteArray(Charsets.UTF_8), "FACK", target = src)
+                }
+            }
+            "FCHUNK" -> {
+                if (parts.size < 4) return
+                val metaId = parts[1]
+                val offset = parts[2].toLongOrNull() ?: return
+                val data = runCatching { Base64.decode(parts[3], Base64.NO_WRAP) }.getOrNull() ?: return
+                val info = inFiles[metaId] ?: return
+                val part = File(filesDir, "$metaId.part")
+                val current = if (part.exists()) part.length() else 0L
+                if (offset < current || offset > current) return
+                runCatching {
+                    FileOutputStream(part, true).use { it.write(data) }
+                }
+                if (part.exists() && part.length() >= info.expected) {
+                    finalizeFile(metaId, info.name, info.mime, info.expected, src)
+                }
+            }
+            "FDONE" -> {
+                val metaId = parts.getOrNull(1) ?: return
+                val info = inFiles.remove(metaId) ?: return
+                if (File(filesDir, "$metaId.part").length() >= info.expected) {
+                    finalizeFile(metaId, info.name, info.mime, info.expected, src)
+                }
+            }
+        }
+    }
+
+    private fun finalizeFile(metaId: String, name: String, mime: String, size: Long, senderId: String) {
+        val part = File(filesDir, "$metaId.part")
+        if (!part.exists() || part.length() < size) return
+        val safe = name.replace(Regex("[^A-Za-z0-9._ -]"), "_").ifBlank { "file-$metaId" }
+        val out = File(filesDir, "${System.currentTimeMillis()}-$safe")
+        runCatching { part.renameTo(out) }
+            .onFailure { out.writeBytes(part.readBytes()) }
+        inFiles.remove(metaId)
+        emit(Event(
+            Type.FILE,
+            Node(senderId, nodeNames[senderId] ?: senderId, null, true),
+            text = out.absolutePath,
+            fileName = safe,
+            fileSize = size,
+            fileMime = mime
+        ))
     }
 
     private fun pairwiseKey(peerNodeId: String): SecretKeySpec {
@@ -822,6 +992,9 @@ class P2PNetworkManager(
         }
         btWriters.values.toList().forEach { w ->
             runCatching { w.write(line); w.flush() }
+        }
+        ble?.openAddresses()?.forEach { addr ->
+            runCatching { ble?.send(addr, line) }
         }
     }
 

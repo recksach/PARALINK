@@ -2,10 +2,12 @@ package com.paralink.app
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -29,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import com.paralink.app.connectivity.wifi.P2PNetworkManager
 import com.paralink.app.connectivity.wifi.WifiCapabilities
 import com.paralink.app.core.identity.IdentityManager
@@ -42,11 +45,13 @@ import com.paralink.app.core.language.StatisticalMTEngine
 import com.paralink.app.core.media.PttRecorder
 import com.paralink.app.core.media.WavPlayer
 import com.paralink.app.core.model.ChatMessage
+import com.paralink.app.core.model.FileMessage
 import com.paralink.app.core.model.VoiceMessage
 import com.paralink.app.core.model.STATUS_NONE
 import com.paralink.app.core.model.STATUS_PENDING
 import com.paralink.app.core.model.STATUS_TRANSLATED
 import com.paralink.app.core.model.STATUS_UNAVAILABLE
+import com.paralink.app.core.notify.NotificationHelper
 import com.paralink.app.core.storage.LedgerStore
 import com.paralink.app.core.storage.LocalMessageStore
 import com.paralink.app.core.store.ShopStore
@@ -57,6 +62,10 @@ import com.paralink.app.ui.RadioScreen
 import com.paralink.app.ui.WalletScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import android.content.Intent
+import android.net.Uri
+import androidx.core.content.FileProvider
+import java.io.File
 import java.util.Locale
 
 private val ParalinkScheme = darkColorScheme(
@@ -75,6 +84,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var language: LanguageManager
     private lateinit var ledger: LedgerStore
     private lateinit var shop: ShopStore
+
+    @Volatile private var appVisible = false
 
     private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         p2p.restartDiscovery()
@@ -99,9 +110,19 @@ class MainActivity : ComponentActivity() {
         p2p.start()
         setContent {
             MaterialTheme(colorScheme = ParalinkScheme) {
-                ParalinkApp(this, nodeId, displayName, WifiCapabilities(this), p2p, store, language, ledger, shop)
+                ParalinkApp(this, nodeId, displayName, WifiCapabilities(this), p2p, store, language, ledger, shop) { this.appVisible }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        appVisible = true
+    }
+
+    override fun onPause() {
+        appVisible = false
+        super.onPause()
     }
 
     override fun onDestroy() {
@@ -136,9 +157,11 @@ class MainActivity : ComponentActivity() {
                 add(Manifest.permission.BLUETOOTH_CONNECT)
                 add(Manifest.permission.BLUETOOTH_ADVERTISE)
                 add(Manifest.permission.ACCESS_COARSE_LOCATION)
+                add(Manifest.permission.POST_NOTIFICATIONS)
             } else add(Manifest.permission.ACCESS_FINE_LOCATION)
             add(Manifest.permission.RECORD_AUDIO)
         }
+        if (Build.VERSION.SDK_INT >= 26) NotificationHelper.ensureChannels(this)
         permissions.launch(list.toTypedArray())
     }
 
@@ -187,7 +210,8 @@ private fun ParalinkApp(
     store: LocalMessageStore,
     language: LanguageManager,
     ledger: LedgerStore,
-    shop: ShopStore
+    shop: ShopStore,
+    appVisible: () -> Boolean = { true }
 ) {
     var tab by remember { mutableStateOf(Tab.NETWORK) }
     var peerDevices by remember { mutableStateOf(p2p.peers()) }
@@ -197,6 +221,7 @@ private fun ParalinkApp(
     var refresh by remember { mutableIntStateOf(0) }
     var messages by remember { mutableStateOf(store.all()) }
     var voiceMessages by remember { mutableStateOf(store.allVoices()) }
+    var files by remember { mutableStateOf(store.allFiles()) }
     var playingVoiceId by remember { mutableStateOf<String?>(null) }
     var walletBalance by remember { mutableStateOf(ledger.currentBalance(System.currentTimeMillis())) }
     var channel by remember { mutableStateOf(p2p.currentChannel()) }
@@ -281,6 +306,38 @@ private fun ParalinkApp(
         p2p.setChannel(c)
     }
 
+    val sendFile: (String, String, ByteArray) -> Unit = { fileName, mime, bytes ->
+        val t = chatWith
+        store.addFile(FileMessage(
+            id = System.nanoTime().toString(),
+            senderId = nodeId,
+            senderName = myName,
+            fileName = fileName,
+            mime = mime,
+            size = bytes.size.toLong(),
+            timestamp = System.currentTimeMillis(),
+            incoming = false,
+            peerId = t
+        ))
+        p2p.sendFile(fileName, mime, bytes, t)
+        files = store.allFiles()
+    }
+
+    val openFile: (FileMessage) -> Unit = open@{ m ->
+        val path = m.path ?: return@open
+        runCatching {
+            val uri = FileProvider.getUriForFile(context, "com.paralink.app.fileprovider", File(path))
+            val resolved = m.mime.ifBlank { "application/octet-stream" }
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, resolved)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        }.onFailure {
+            lastError = "No viewer for ${m.fileName}"
+        }
+    }
+
     val onRadarTap: (String) -> Unit = openPeer
 
     val onRadarPtt: (String, Boolean) -> Unit = { id, pressed ->
@@ -342,6 +399,13 @@ private fun ParalinkApp(
                         )
                         store.add(msg)
                         messages = store.all()
+                        if (!appVisible()) {
+                            NotificationHelper.notify(
+                                context, NotificationHelper.CH_MESSAGES,
+                                context.getString(R.string.message_notification_title), "${n.name}: $text",
+                                n.id.hashCode(), android.R.drawable.stat_notify_more
+                            )
+                        }
                         scope.launch {
                             val view = language.processIncoming(text)
                             store.update(msg.copy(
@@ -374,6 +438,41 @@ private fun ParalinkApp(
                             incoming = true
                         ))
                         voiceMessages = store.allVoices()
+                        if (!appVisible() && n != null) {
+                            NotificationHelper.notify(
+                                context, NotificationHelper.CH_VOICE,
+                                context.getString(R.string.voice_notification_title), "${n.name}: ${event.durationMs / 1000}s",
+                                n.id.hashCode(), android.R.drawable.stat_sys_phone_call
+                            )
+                        }
+                    }
+                }
+                P2PNetworkManager.Type.FILE -> {
+                    val n = event.node
+                    val fileName = event.fileName ?: return@setListener
+                    if (n == null) {
+                        // sender-side echo (outgoing file)
+                        files = store.allFiles()
+                    } else {
+                        store.addFile(FileMessage(
+                            id = System.nanoTime().toString(),
+                            senderId = n.id,
+                            senderName = n.name,
+                            fileName = fileName,
+                            mime = event.fileMime ?: "application/octet-stream",
+                            size = event.fileSize,
+                            path = event.text,
+                            timestamp = System.currentTimeMillis(),
+                            incoming = true
+                        ))
+                        files = store.allFiles()
+                        if (!appVisible()) {
+                            NotificationHelper.notify(
+                                context, NotificationHelper.CH_FILES,
+                                context.getString(R.string.file_notification_title), "${n.name}: $fileName",
+                                n.id.hashCode(), android.R.drawable.stat_sys_download_done
+                            )
+                        }
                     }
                 }
                 P2PNetworkManager.Type.ERROR -> lastError = event.text
@@ -459,8 +558,11 @@ private fun ParalinkApp(
                 Tab.CHAT -> ChatScreen(
                     messages = messages,
                     voiceMessages = voiceMessages,
+                    files = files,
                     language = language,
                     onSend = sendText,
+                    onSendFile = sendFile,
+                    onOpenFile = openFile,
                     onPlayVoice = playVoice,
                     playingVoiceId = playingVoiceId,
                     channel = channel,

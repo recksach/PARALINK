@@ -2,6 +2,7 @@ package com.paralink.app.core.storage
 
 import android.content.Context
 import com.paralink.app.core.model.ChatMessage
+import com.paralink.app.core.model.FileMessage
 import com.paralink.app.core.model.VoiceMessage
 import com.paralink.app.core.model.STATUS_NONE
 import org.json.JSONArray
@@ -12,12 +13,15 @@ class LocalMessageStore(context: Context) {
     private val prefs = context.getSharedPreferences("paralink_messages", Context.MODE_PRIVATE)
     private val messages = CopyOnWriteArrayList<ChatMessage>()
     private val voices = CopyOnWriteArrayList<VoiceMessage>()
+    private val files = CopyOnWriteArrayList<FileMessage>()
 
     init { load() }
 
     fun all(): List<ChatMessage> = messages.sortedBy { it.timestamp }
 
     fun allVoices(): List<VoiceMessage> = voices.sortedBy { it.timestamp }
+
+    fun allFiles(): List<FileMessage> = files.sortedBy { it.timestamp }
 
     @Synchronized
     fun add(message: ChatMessage) {
@@ -54,9 +58,27 @@ class LocalMessageStore(context: Context) {
     }
 
     @Synchronized
+    fun addFile(file: FileMessage) {
+        if (files.none { it.id == file.id }) {
+            files.add(file)
+            persist()
+        }
+    }
+
+    @Synchronized
+    fun updateFile(file: FileMessage) {
+        val index = files.indexOfFirst { it.id == file.id }
+        if (index >= 0) {
+            files[index] = file
+            persist()
+        }
+    }
+
+    @Synchronized
     fun clear() {
         messages.clear()
         voices.clear()
+        files.clear()
         persist()
     }
 
@@ -100,6 +122,25 @@ class LocalMessageStore(context: Context) {
                 ))
             }
         }
+        val rawF = prefs.getString("files", "[]") ?: "[]"
+        runCatching {
+            val arr = JSONArray(rawF)
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                files.add(FileMessage(
+                    id = o.getString("id"),
+                    senderId = o.getString("senderId"),
+                    senderName = o.getString("senderName"),
+                    fileName = o.getString("fileName"),
+                    mime = o.optString("mime", "application/octet-stream"),
+                    size = o.optLong("size"),
+                    path = o.optString("path", "").takeIf { it.isNotEmpty() },
+                    timestamp = o.getLong("timestamp"),
+                    incoming = o.getBoolean("incoming"),
+                    peerId = o.optString("peerId", "").takeIf { it.isNotEmpty() }
+                ))
+            }
+        }
     }
 
     private fun persist() {
@@ -127,5 +168,16 @@ class LocalMessageStore(context: Context) {
             })
         }
         prefs.edit().putString("voice", v.toString()).apply()
+
+        val f = JSONArray()
+        files.forEach {
+            f.put(JSONObject().apply {
+                put("id", it.id); put("senderId", it.senderId); put("senderName", it.senderName)
+                put("fileName", it.fileName); put("mime", it.mime); put("size", it.size)
+                put("path", it.path ?: ""); put("timestamp", it.timestamp); put("incoming", it.incoming)
+                put("peerId", it.peerId ?: "")
+            })
+        }
+        prefs.edit().putString("files", f.toString()).apply()
     }
 }

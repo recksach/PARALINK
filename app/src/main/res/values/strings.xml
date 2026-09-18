@@ -142,4 +142,11 @@
     <string name="bluetooth_desc">No internet? Phones talk directly over Bluetooth. Radar, chats and voice work the same.</string>
     <string name="bluetooth_scan">SCAN BLUETOOTH</string>
     <string name="bluetooth_connect">CONNECT</string>
+    <string name="attach">ATTACH</string>
+    <string name="photo">PHOTO</string>
+    <string name="document">DOCUMENT</string>
+    <string name="file_open">OPEN</string>
+    <string name="message_notification_title">New message</string>
+    <string name="voice_notification_title">Voice message</string>
+    <string name="file_notification_title">New file</string>
 </resources>

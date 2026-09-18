@@ -45,6 +45,19 @@ data class VoiceMessage(
     val peerId: String? = null
 ) : Serializable
 
+data class FileMessage(
+    val id: String,
+    val senderId: String,
+    val senderName: String,
+    val fileName: String,
+    val mime: String,
+    val size: Long,
+    val path: String? = null,
+    val timestamp: Long,
+    val incoming: Boolean,
+    val peerId: String? = null
+) : Serializable
+
 data class Route(
     val destination: String,
     val hops: List<String>,
