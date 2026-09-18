@@ -1,6 +1,11 @@
 package com.paralink.app
 
 import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -69,6 +74,7 @@ class MainActivity : ComponentActivity() {
 
     private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         p2p.restartDiscovery()
+        startLocationUpdates()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -121,11 +127,47 @@ class MainActivity : ComponentActivity() {
                 add(Manifest.permission.BLUETOOTH_SCAN)
                 add(Manifest.permission.BLUETOOTH_CONNECT)
                 add(Manifest.permission.BLUETOOTH_ADVERTISE)
+                add(Manifest.permission.ACCESS_COARSE_LOCATION)
             } else add(Manifest.permission.ACCESS_FINE_LOCATION)
             add(Manifest.permission.RECORD_AUDIO)
         }
         permissions.launch(list.toTypedArray())
     }
+
+    private fun startLocationUpdates() {
+        val granted = if (Build.VERSION.SDK_INT >= 33) {
+            checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        } else {
+            checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        }
+        if (!granted) return
+        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val push: (Location) -> Unit = { loc ->
+            p2p.setMyLocation(loc.latitude, loc.longitude)
+        }
+        if (Build.VERSION.SDK_INT >= 30) {
+            val exec = java.util.concurrent.Executors.newSingleThreadExecutor()
+            runCatching { lm.getCurrentLocation(LocationManager.GPS_PROVIDER, null, exec, ::getLocationConsumer) }
+            runCatching { lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 5f, exec) { loc -> p2p.setMyLocation(loc.latitude, loc.longitude) } }
+            runCatching { lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L, 5f, exec) { loc -> p2p.setMyLocation(loc.latitude, loc.longitude) } }
+        } else {
+            @Suppress("DEPRECATION")
+            val l = object : LocationListener {
+                override fun onLocationChanged(location: Location) = push(location)
+                @Deprecated("deprecated")
+                override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) = Unit
+                override fun onProviderEnabled(provider: String) = Unit
+                override fun onProviderDisabled(provider: String) = Unit
+            }
+            @Suppress("DEPRECATION")
+            runCatching { lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 5f, l) }
+            @Suppress("DEPRECATION")
+            runCatching { lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L, 5f, l) }
+        }
+    }
+
+    private fun getLocationConsumer(): java.util.function.Consumer<Location> =
+        java.util.function.Consumer { loc -> p2p.setMyLocation(loc.latitude, loc.longitude) }
 }
 
 private enum class Tab { NETWORK, CHAT, RADIO, WALLET, PROFILE }
@@ -153,6 +195,7 @@ private fun ParalinkApp(
     var channel by remember { mutableStateOf(p2p.currentChannel()) }
     var autoPairEnabled by remember { mutableStateOf(true) }
     var radarNodes by remember { mutableStateOf(p2p.radarNodes()) }
+    var myLoc by remember { mutableStateOf(0.0 to 0.0) }
     var ownNetwork by remember { mutableStateOf<String?>(null) }
     var joinStatus by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -161,6 +204,7 @@ private fun ParalinkApp(
         while (true) {
             walletBalance = ledger.currentBalance(System.currentTimeMillis())
             radarNodes = p2p.radarNodes()
+            myLoc = p2p.myLocation()
             delay(1000)
         }
     }
@@ -328,6 +372,8 @@ private fun ParalinkApp(
                     connect = { device -> p2p.connect(device) },
                     connectIp = { ip -> p2p.connectToIp(ip) },
                     radarNodes = radarNodes,
+                    myLat = myLoc.first,
+                    myLon = myLoc.second,
                     autoPair = autoPairEnabled,
                     onAutoPair = { enabled ->
                         autoPairEnabled = enabled

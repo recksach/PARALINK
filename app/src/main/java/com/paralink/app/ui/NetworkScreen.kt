@@ -48,7 +48,9 @@ fun NetworkScreen(
     onCreateNetwork: () -> Unit = {},
     onStopNetwork: () -> Unit = {},
     joinStatus: String? = null,
-    onJoinNetwork: (String, String) -> Unit = { _, _ -> }
+    onJoinNetwork: (String, String) -> Unit = { _, _ -> },
+    myLat: Double = 0.0,
+    myLon: Double = 0.0
 ) {
     var ipInput by remember { mutableStateOf("") }
     var joinSsid by remember { mutableStateOf("") }
@@ -63,7 +65,7 @@ fun NetworkScreen(
             IconButton(onClick = refresh) { Icon(Icons.Default.Refresh, null) }
         }
         Spacer(Modifier.height(8.dp))
-        MeshRadar(radarNodes)
+        MeshRadar(radarNodes, myLat, myLon)
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             StatusPill(

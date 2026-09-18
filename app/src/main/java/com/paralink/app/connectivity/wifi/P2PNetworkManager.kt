@@ -36,7 +36,7 @@ class P2PNetworkManager(
     }
 
     data class Node(val id: String, val name: String, val address: String?, val connected: Boolean)
-    data class RadarNode(val id: String, val name: String, val lastSeen: Long)
+    data class RadarNode(val id: String, val name: String, val lastSeen: Long, val lat: Double = 0.0, val lon: Double = 0.0)
     data class Event(
         val type: Type,
         val node: Node? = null,
@@ -59,6 +59,7 @@ class P2PNetworkManager(
     private val linkPeers = ConcurrentHashMap<String, String>()
     private val networkKeys = ConcurrentHashMap<String, String>()
     private val nodeNames = ConcurrentHashMap<String, String>()
+    private val nodeCoords = ConcurrentHashMap<String, Pair<Double, Double>>()
     private val lastSeen = ConcurrentHashMap<String, Long>()
     private val pairwise = ConcurrentHashMap<String, SecretKeySpec>()
     private val seenIds = ConcurrentHashMap.newKeySet<String>()
@@ -73,6 +74,8 @@ class P2PNetworkManager(
 
     @Volatile private var localChannel: String = CHANNEL_ALL
     @Volatile private var autoPair: Boolean = true
+    @Volatile private var myLat: Double = 0.0
+    @Volatile private var myLon: Double = 0.0
 
     private val discoveryLock = Any()
     private var discoveryRunning = false
@@ -139,8 +142,20 @@ class P2PNetworkManager(
         return ids
             .filter { it != nodeId && now - (lastSeen[it] ?: 0L) < BEACON_TTL_MS }
             .sorted()
-            .map { RadarNode(it, nodeNames[it] ?: it, lastSeen[it] ?: 0L) }
+            .map {
+                val c = nodeCoords[it]
+                RadarNode(it, nodeNames[it] ?: it, lastSeen[it] ?: 0L, c?.first ?: 0.0, c?.second ?: 0.0)
+            }
     }
+
+    fun setMyLocation(lat: Double, lon: Double) {
+        if (lat != 0.0 && lon != 0.0) {
+            myLat = lat
+            myLon = lon
+        }
+    }
+
+    fun myLocation(): Pair<Double, Double> = myLat to myLon
 
     fun sendText(text: String) {
         val clean = text.trim()
@@ -428,7 +443,8 @@ class P2PNetworkManager(
     }
 
     private fun sendBeacon() {
-        val payload = "BEACON|$nodeId|${displayName.replace('|','_')}|$PORT|CH".toByteArray(Charsets.UTF_8)
+        val loc = if (myLat != 0.0 || myLon != 0.0) "|$myLat|$myLon" else ""
+        val payload = "BEACON|$nodeId|${displayName.replace('|','_')}|$PORT|CH$loc".toByteArray(Charsets.UTF_8)
         val s = DatagramSocket()
         s.broadcast = true
         runCatching {
@@ -444,6 +460,11 @@ class P2PNetworkManager(
         val senderName = parts[2]
         val senderPort = parts[3].toIntOrNull() ?: PORT
         nodeNames[senderId] = senderName
+        if (parts.size >= 7) {
+            val lat = parts[5].toDoubleOrNull() ?: 0.0
+            val lon = parts[6].toDoubleOrNull() ?: 0.0
+            if (lat != 0.0 && lon != 0.0) nodeCoords[senderId] = lat to lon
+        }
         lastSeen[senderId] = System.currentTimeMillis()
         emit(Event(Type.PEERS))
         if (networkKeys.containsKey(senderId)) return
