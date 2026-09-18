@@ -29,9 +29,12 @@ class P2PNetworkManager(
     companion object {
         const val PORT = 49152
         const val UDP_PORT = 49151
+        const val CHANNEL_ALL = "*"
+        const val BEACON_TTL_MS = 20000L
     }
 
     data class Node(val id: String, val name: String, val address: String?, val connected: Boolean)
+    data class RadarNode(val id: String, val name: String, val lastSeen: Long)
     data class Event(
         val type: Type,
         val node: Node? = null,
@@ -54,15 +57,20 @@ class P2PNetworkManager(
     private val linkPeers = ConcurrentHashMap<String, String>()
     private val networkKeys = ConcurrentHashMap<String, String>()
     private val nodeNames = ConcurrentHashMap<String, String>()
+    private val lastSeen = ConcurrentHashMap<String, Long>()
     private val pairwise = ConcurrentHashMap<String, SecretKeySpec>()
     private val seenIds = ConcurrentHashMap.newKeySet<String>()
     private val beaconCooldown = ConcurrentHashMap<String, Long>()
+    private val tryConnectAt = ConcurrentHashMap<String, Long>()
 
     private var server: ServerSocket? = null
     private var udpSocket: DatagramSocket? = null
     private var groupInfo: WifiP2pGroup? = null
     private var listener: ((Event) -> Unit)? = null
     private var peerDevices = emptyList<WifiP2pDevice>()
+
+    @Volatile private var localChannel: String = CHANNEL_ALL
+    @Volatile private var autoPair: Boolean = true
 
     private val discoveryLock = Any()
     private var discoveryRunning = false
@@ -91,6 +99,17 @@ class P2PNetworkManager(
         scope.cancel()
     }
 
+    fun setChannel(c: String) {
+        localChannel = c.trim().ifEmpty { CHANNEL_ALL }
+    }
+
+    fun currentChannel(): String = localChannel
+
+    fun setAutoPair(on: Boolean) {
+        autoPair = on
+        if (on) autoPairPeers()
+    }
+
     fun connect(device: WifiP2pDevice) {
         if (!hasPermission()) return
         val config = WifiP2pConfig().apply {
@@ -99,7 +118,7 @@ class P2PNetworkManager(
         }
         manager.connect(channel, config, object : WifiP2pManager.ActionListener {
             override fun onSuccess() = Unit
-            override fun onFailure(reason: Int) { emit(Event(Type.ERROR, text = "Wi-Fi Direct connect failed: $reason")) }
+            override fun onFailure(reason: Int) { if (autoPair) emit(Event(Type.ERROR, text = "Pairing failed: $reason")) }
         })
     }
 
@@ -110,15 +129,26 @@ class P2PNetworkManager(
         .sorted()
         .map { Node(it, nodeNames[it] ?: it, null, true) }
 
+    fun radarNodes(): List<RadarNode> {
+        val ids = LinkedHashSet<String>()
+        networkKeys.keys.forEach { ids += it }
+        lastSeen.keys.forEach { ids += it }
+        val now = System.currentTimeMillis()
+        return ids
+            .filter { it != nodeId && now - (lastSeen[it] ?: 0L) < BEACON_TTL_MS }
+            .sorted()
+            .map { RadarNode(it, nodeNames[it] ?: it, lastSeen[it] ?: 0L) }
+    }
+
     fun sendText(text: String) {
         val clean = text.trim()
         if (clean.isEmpty()) return
-        val body = "TXT|${displayName.replace('|','_')}|${UUID.randomUUID()}|${System.currentTimeMillis()}|${clean.replace('\n',' ')}"
+        val body = "TXT|${displayName.replace('|','_')}|${UUID.randomUUID()}|${System.currentTimeMillis()}|$localChannel|${clean.replace('\n',' ')}"
         sendEncrypted(PacketKinds.TXT, body.toByteArray(Charsets.UTF_8), visual = clean)
     }
 
     fun sendVoice(wavB64: String, durationMs: Long, previewText: String) {
-        val body = "VOICE|${displayName.replace('|','_')}|${UUID.randomUUID()}|${System.currentTimeMillis()}|$durationMs|$wavB64"
+        val body = "VOICE|${displayName.replace('|','_')}|${UUID.randomUUID()}|${System.currentTimeMillis()}|$localChannel|$durationMs|$wavB64"
         sendEncrypted(PacketKinds.VOICE, body.toByteArray(Charsets.UTF_8), visual = previewText)
     }
 
@@ -237,6 +267,21 @@ class P2PNetworkManager(
         manager.requestPeers(channel) { list ->
             peerDevices = list.deviceList.toList()
             emit(Event(Type.PEERS))
+            autoPairPeers()
+        }
+    }
+
+    private fun autoPairPeers() {
+        if (!autoPair) return
+        val now = System.currentTimeMillis()
+        peerDevices.forEach { d ->
+            if (d.status == WifiP2pDevice.AVAILABLE) {
+                val last = tryConnectAt.getOrDefault(d.deviceAddress, 0L)
+                if (now - last > 20000) {
+                    tryConnectAt[d.deviceAddress] = now
+                    connect(d)
+                }
+            }
         }
     }
 
@@ -302,7 +347,7 @@ class P2PNetworkManager(
     }
 
     private fun sendBeacon() {
-        val payload = "BEACON|$nodeId|${displayName.replace('|','_')}|$PORT".toByteArray(Charsets.UTF_8)
+        val payload = "BEACON|$nodeId|${displayName.replace('|','_')}|$PORT|CH".toByteArray(Charsets.UTF_8)
         val s = DatagramSocket()
         s.broadcast = true
         runCatching {
@@ -318,6 +363,8 @@ class P2PNetworkManager(
         val senderName = parts[2]
         val senderPort = parts[3].toIntOrNull() ?: PORT
         nodeNames[senderId] = senderName
+        lastSeen[senderId] = System.currentTimeMillis()
+        emit(Event(Type.PEERS))
         if (networkKeys.containsKey(senderId)) return
         val now = System.currentTimeMillis()
         if (now - (beaconCooldown.getOrDefault(senderId, 0L)) < 30000) return
@@ -361,6 +408,7 @@ class P2PNetworkManager(
         if (packet.id in seenIds) return
         seenIds += packet.id
         if (seenIds.size > 4096) { seenIds.clear() }
+        lastSeen[packet.src] = System.currentTimeMillis()
 
         when (packet.kind) {
             PacketKinds.HELLO -> {
@@ -388,21 +436,26 @@ class P2PNetworkManager(
 
     private fun nodeNameFor(nodeId: String): String = nodeNames[nodeId] ?: nodeId
 
+    private fun onChannel(ch: String?): Boolean =
+        localChannel == CHANNEL_ALL || ch == localChannel
+
     private fun deliverDecrypted(packet: MeshPacket, plain: ByteArray) {
         val text = plain.toString(Charsets.UTF_8)
-        val parts = text.split('|', limit = 6)
+        val parts = text.split('|')
         when (packet.kind) {
             PacketKinds.TXT -> {
                 if (parts.size >= 6 && parts[0] == "TXT") {
+                    if (!onChannel(parts[4])) return
                     nodeNames[packet.src] = parts[1]
-                    emit(Event(Type.MESSAGE, Node(packet.src, parts[1], null, true), text = parts[5]))
+                    emit(Event(Type.MESSAGE, Node(packet.src, parts[1], null, true), text = parts.drop(5).joinToString("|")))
                 }
             }
             PacketKinds.VOICE -> {
-                if (parts.size >= 6 && parts[0] == "VOICE") {
+                if (parts.size >= 7 && parts[0] == "VOICE") {
+                    if (!onChannel(parts[4])) return
                     nodeNames[packet.src] = parts[1]
-                    val dur = parts[4].toLongOrNull() ?: 0L
-                    val wav = parts[5]
+                    val dur = parts[5].toLongOrNull() ?: 0L
+                    val wav = parts.drop(6).joinToString("|")
                     emit(Event(Type.VOICE, Node(packet.src, parts[1], null, true), wavB64 = wav, durationMs = dur))
                 }
             }

@@ -35,7 +35,9 @@ fun RadioScreen(
     callCaptions: Boolean,
     onPttSends: (wavB64: String, durationMs: Long) -> Unit,
     onPlayVoice: (VoiceMessage) -> Unit,
-    playingVoiceId: String?
+    playingVoiceId: String?,
+    channel: String = "*",
+    onChannelChange: (String) -> Unit = {}
 ) {
     val recorder = remember { PttRecorder() }
     var holding by remember { mutableStateOf(false) }
@@ -51,7 +53,26 @@ fun RadioScreen(
     Column(Modifier.fillMaxSize().padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(Modifier.height(30.dp))
         Text(stringResource(R.string.push_to_talk), fontSize = 15.sp, color = Color(0xFF75B6FF), letterSpacing = 3.sp)
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(10.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.channel_label), fontSize = 11.sp, color = Color(0xFF6F9BCC), fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+            Spacer(Modifier.width(8.dp))
+            OutlinedTextField(
+                value = channel,
+                onValueChange = onChannelChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(R.string.channel_hint)) },
+                singleLine = true
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                if (channel.isNotBlank()) "● $channel" else "● ${stringResource(R.string.all_channels)}",
+                color = Color(0xFF42E8A4),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(Modifier.height(18.dp))
         Box(
             Modifier
                 .size(220.dp)

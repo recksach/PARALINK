@@ -50,7 +50,9 @@ fun ChatScreen(
     language: LanguageManager,
     onSend: (String) -> Unit,
     onPlayVoice: (VoiceMessage) -> Unit,
-    playingVoiceId: String?
+    playingVoiceId: String?,
+    channel: String = "*",
+    onChannelChange: (String) -> Unit = {}
 ) {
     var text by remember { mutableStateOf("") }
     val showOriginalOnly = remember { mutableStateMapOf<String, Boolean>() }
@@ -65,7 +67,26 @@ fun ChatScreen(
     Column(Modifier.fillMaxSize().padding(14.dp)) {
         Text(stringResource(R.string.messenger), fontSize = 27.sp, fontWeight = FontWeight.Bold)
         Text(stringResource(R.string.transport_hint), color = Color(0xFF7890AA))
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.channel_label), fontSize = 11.sp, color = Color(0xFF6F9BCC), fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+            Spacer(Modifier.width(8.dp))
+            OutlinedTextField(
+                value = channel,
+                onValueChange = onChannelChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(R.string.channel_hint)) },
+                singleLine = true
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                if (channel.isNotBlank()) "● $channel" else "● ${stringResource(R.string.all_channels)}",
+                color = Color(0xFF42E8A4),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(Modifier.height(6.dp))
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(items, key = { it.key }) { item ->
                 when (item) {

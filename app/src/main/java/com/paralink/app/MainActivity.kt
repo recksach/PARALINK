@@ -150,11 +150,15 @@ private fun ParalinkApp(
     var voiceMessages by remember { mutableStateOf(store.allVoices()) }
     var playingVoiceId by remember { mutableStateOf<String?>(null) }
     var walletBalance by remember { mutableStateOf(ledger.currentBalance(System.currentTimeMillis())) }
+    var channel by remember { mutableStateOf(p2p.currentChannel()) }
+    var autoPairEnabled by remember { mutableStateOf(true) }
+    var radarNodes by remember { mutableStateOf(p2p.radarNodes()) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         while (true) {
             walletBalance = ledger.currentBalance(System.currentTimeMillis())
+            radarNodes = p2p.radarNodes()
             delay(1000)
         }
     }
@@ -191,12 +195,18 @@ private fun ParalinkApp(
         }
     }
 
+    val setChannel: (String) -> Unit = { c ->
+        channel = c
+        p2p.setChannel(c)
+    }
+
     DisposableEffect(Unit) {
         p2p.setListener { event ->
             when (event.type) {
                 P2PNetworkManager.Type.PEERS -> {
                     peerDevices = p2p.peers()
                     knownNodes = p2p.knownNodes()
+                    radarNodes = p2p.radarNodes()
                 }
                 P2PNetworkManager.Type.CONNECTED -> {
                     connected = true
@@ -305,7 +315,13 @@ private fun ParalinkApp(
                         knownNodes = p2p.knownNodes()
                     },
                     connect = { device -> p2p.connect(device) },
-                    connectIp = { ip -> p2p.connectToIp(ip) }
+                    connectIp = { ip -> p2p.connectToIp(ip) },
+                    radarNodes = radarNodes,
+                    autoPair = autoPairEnabled,
+                    onAutoPair = { enabled ->
+                        autoPairEnabled = enabled
+                        p2p.setAutoPair(enabled)
+                    }
                 )
                 Tab.CHAT -> ChatScreen(
                     messages = messages,
@@ -313,7 +329,9 @@ private fun ParalinkApp(
                     language = language,
                     onSend = sendText,
                     onPlayVoice = playVoice,
-                    playingVoiceId = playingVoiceId
+                    playingVoiceId = playingVoiceId,
+                    channel = channel,
+                    onChannelChange = setChannel
                 )
                 Tab.RADIO -> RadioScreen(
                     voiceMessages = voiceMessages,
@@ -321,7 +339,9 @@ private fun ParalinkApp(
                     callCaptions = language.callCaptions,
                     onPttSends = { wav, duration -> p2p.sendVoice(wav, duration, "voice $duration") },
                     onPlayVoice = playVoice,
-                    playingVoiceId = playingVoiceId
+                    playingVoiceId = playingVoiceId,
+                    channel = channel,
+                    onChannelChange = setChannel
                 )
                 Tab.WALLET -> WalletScreen(
                     balance = walletBalance,

@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.paralink.app.R
+import com.paralink.app.connectivity.wifi.P2PNetworkManager
 import com.paralink.app.connectivity.wifi.WifiCapabilities
 
 @Composable
@@ -38,9 +40,13 @@ fun NetworkScreen(
     error: String?,
     refresh: () -> Unit,
     connect: (android.net.wifi.p2p.WifiP2pDevice) -> Unit,
-    connectIp: (String) -> Unit = {}
+    connectIp: (String) -> Unit = {},
+    radarNodes: List<P2PNetworkManager.RadarNode> = emptyList(),
+    autoPair: Boolean = true,
+    onAutoPair: (Boolean) -> Unit = {}
 ) {
     var ipInput by remember { mutableStateOf("") }
+    val liveCount = radarNodes.count { System.currentTimeMillis() - it.lastSeen < 10000 }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp)) {
         Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
             Column {
@@ -49,10 +55,19 @@ fun NetworkScreen(
             }
             IconButton(onClick = refresh) { Icon(Icons.Default.Refresh, null) }
         }
-        Spacer(Modifier.height(12.dp)); Radar((knownNodes.size + if (connected) 1 else 0).coerceAtLeast(peers.size))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StatusPill(if (connected) stringResource(R.string.connected) else stringResource(R.string.local_search), if (connected) Color(0xFF42E8A4) else Color(0xFF29D9FF))
-            StatusPill(stringResource(R.string.node_count, knownNodes.size + peers.size), Color(0xFF2D7DFF))
+        Spacer(Modifier.height(8.dp))
+        MeshRadar(radarNodes)
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            StatusPill(
+                if (liveCount > 0 || connected) stringResource(R.string.connected) else stringResource(R.string.local_search),
+                if (liveCount > 0 || connected) Color(0xFF42E8A4) else Color(0xFF29D9FF)
+            )
+            Spacer(Modifier.width(8.dp))
+            StatusPill(stringResource(R.string.node_count, liveCount + (if (connected) 1 else 0)), Color(0xFF2D7DFF))
+            Spacer(Modifier.weight(1f))
+            Text(stringResource(R.string.auto_pair), fontSize = 11.sp, color = Color(0xFF7890AA))
+            Switch(checked = autoPair, onCheckedChange = onAutoPair, modifier = Modifier.scale(0.8f))
         }
         Spacer(Modifier.height(12.dp))
         Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220))) {
@@ -119,27 +134,6 @@ fun NetworkScreen(
             }
         }
         Spacer(Modifier.height(16.dp))
-    }
-}
-
-@Composable
-private fun Radar(count: Int) {
-    Box(Modifier.fillMaxWidth().height(260.dp), Alignment.Center) {
-        Canvas(Modifier.size(240.dp)) {
-            val c = androidx.compose.ui.geometry.Offset(size.width / 2, size.height / 2)
-            val r = size.minDimension / 2.2f
-            listOf(0.25f, 0.5f, 0.75f, 1f).forEach { drawCircle(Color(0xFF20507A).copy(0.45f), r * it, c, style = Stroke(1.4f)) }
-            drawLine(Color(0xFF2D7DFF).copy(0.7f), c, androidx.compose.ui.geometry.Offset(c.x + r, c.y - r * 0.2f), 2f)
-            repeat(minOf(count, 8)) { i ->
-                val a = Math.toRadians(i * 45.0); val rr = r * (0.35 + (i % 3) * 0.18)
-                drawCircle(Color(0xFF29D9FF), 6f, androidx.compose.ui.geometry.Offset(c.x + (kotlin.math.cos(a) * rr).toFloat(), c.y + (kotlin.math.sin(a) * rr).toFloat()))
-            }
-        }
-        Box(
-            Modifier.size(66.dp).clip(CircleShape).background(Color(0xFF10233E))
-                .border(2.dp, Color(0xFF29D9FF), CircleShape),
-            Alignment.Center
-        ) { Text(stringResource(R.string.you), fontWeight = FontWeight.Bold) }
     }
 }
 

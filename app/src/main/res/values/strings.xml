@@ -18,6 +18,10 @@
     <string name="nearby_devices">Nearby devices</string>
     <string name="nearby_hint">Open PARALINK on another Android nearby, grant the Nearby devices permission, and keep this screen open. On the same Wi-Fi network you can also connect by IP.</string>
     <string name="connect">CONNECT</string>
+    <string name="auto_pair">AUTO-PAIR</string>
+    <string name="channel_label">NET</string>
+    <string name="channel_hint">Channel (empty = all)</string>
+    <string name="all_channels">ALL</string>
 
     <string name="messenger">Messenger</string>
     <string name="transport_hint">Direct local encrypted transport</string>

@@ -18,6 +18,10 @@
     <string name="nearby_devices">Устройства рядом</string>
     <string name="nearby_hint">Откройте PARALINK на другом Android рядом, дайте разрешение «Устройства рядом» и держите этот экран открытым. В одной Wi-Fi-сети подключитесь по IP-адресу.</string>
     <string name="connect">ПОДКЛЮЧИТЬСЯ</string>
+    <string name="auto_pair">АВТОПАРА</string>
+    <string name="channel_label">СЕТЬ</string>
+    <string name="channel_hint">Канал (пусто = все)</string>
+    <string name="all_channels">ВСЕ</string>
 
     <string name="messenger">Мессенджер</string>
     <string name="transport_hint">Прямой локальный зашифрованный канал</string>
