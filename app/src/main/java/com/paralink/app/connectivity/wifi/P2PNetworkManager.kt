@@ -39,6 +39,7 @@ class P2PNetworkManager(
         const val CHANNEL_ALL = "*"
         const val BEACON_TTL_MS = 20000L
         const val BT_UUID = "d133e46c-2e74-4e53-8c4e-7f2d3a1b9c00"
+        const val MCAST_GROUP = "239.255.255.250"
     }
 
     data class Node(val id: String, val name: String, val address: String?, val connected: Boolean)
@@ -76,6 +77,7 @@ class P2PNetworkManager(
 
     private var server: ServerSocket? = null
     private var udpSocket: DatagramSocket? = null
+    private var mcastSocket: MulticastSocket? = null
     private var groupInfo: WifiP2pGroup? = null
     private val btAdapter: BluetoothAdapter? =
         runCatching {
@@ -120,6 +122,8 @@ class P2PNetworkManager(
         server = null
         runCatching { udpSocket?.close() }
         udpSocket = null
+        runCatching { mcastSocket?.close() }
+        mcastSocket = null
         runCatching { if (btScanning) btAdapter?.cancelDiscovery() }
         runCatching { btServerSocket?.close() }
         btServerSocket = null
@@ -648,6 +652,24 @@ class P2PNetworkManager(
                 }
             }
         }
+        scope.launch {
+            runCatching {
+                val ms = MulticastSocket(null)
+                ms.reuseAddress = true
+                ms.bind(InetSocketAddress(UDP_PORT))
+                ms.joinGroup(InetAddress.getByName(MCAST_GROUP))
+                mcastSocket = ms
+                val buf = ByteArray(2048)
+                while (isActive && mcastSocket == ms) {
+                    runCatching {
+                        val p = DatagramPacket(buf, buf.size)
+                        ms.receive(p)
+                        val msg = String(p.data, 0, p.length, Charsets.UTF_8)
+                        handleBeacon(msg, p.address.hostAddress)
+                    }
+                }
+            }
+        }
     }
 
     private fun sendBeacon() {
@@ -657,6 +679,9 @@ class P2PNetworkManager(
         s.broadcast = true
         runCatching {
             s.send(DatagramPacket(payload, payload.size, InetAddress.getByName("255.255.255.255"), UDP_PORT))
+        }
+        runCatching {
+            s.send(DatagramPacket(payload, payload.size, InetAddress.getByName(MCAST_GROUP), UDP_PORT))
         }
         runCatching { s.close() }
     }
