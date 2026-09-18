@@ -29,7 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.paralink.app.connectivity.wifi.P2PNetworkManager
 import kotlin.math.*
 
-const val RADAR_GOLD = 0xFFFFD54F
+const val RADAR_GOLD = 0xFFFFD54F.toInt()
 
 @Composable
 fun MeshRadar(nodes: List<P2PNetworkManager.RadarNode>, myLat: Double = 0.0, myLon: Double = 0.0) {

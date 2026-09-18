@@ -442,10 +442,9 @@ private fun ParalinkApp(
     }
 
     if (firstRunShown) {
-            FirstRunDialog(language) {
-                firstRunShown = false
-                language.firstRunDone = true
-            }
+        FirstRunDialog(language) {
+            firstRunShown = false
+            language.firstRunDone = true
         }
     }
 }

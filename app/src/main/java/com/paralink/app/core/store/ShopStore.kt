@@ -1,6 +1,7 @@
 package com.paralink.app.core.store
 
 import android.content.Context
+import com.paralink.app.R
 import com.paralink.app.core.storage.LedgerStore
 
 object ShopItems {
