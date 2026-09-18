@@ -56,12 +56,16 @@ Expected APKs (two flavors):
 
 1. Download `app-global-debug.apk` (signed, ready to install) from the build artifacts or Release.
 2. Enable “Install unknown apps” for your browser/file manager.
-3. Install on two or more Android devices with Wi-Fi enabled.
-4. Open PARALINK on both, grant the Nearby devices permission, and keep the Network screen open.
-5. One device appears on the other — tap it to connect; they establish a
-   direct local TCP session with E2E encryption.
+3. Install on two or more devices.
+4. Open PARALINK on both, grant the Nearby devices / Bluetooth permission, and keep the Network screen open.
+5. Pair them over Bluetooth (Network → “Scan Bluetooth” → tap the phone) or over the same Wi-Fi
+   network (“Create own network” on one, “Join” on the other). Devices then establish a direct
+   local TCP/BT session with E2E encryption.
 
 ## Offline translation test (INTERNET OFF)
+
+> Note: the app itself needs no internet, but with internet OFF the phones must be on the same
+> Wi-Fi network or paired via Bluetooth — otherwise there is no route between them.
 
 Set Phone A UI language to **Ukrainian**, Phone B to **German**. With Internet and mobile
 data OFF, A sends a free-form Ukrainian phrase (not present in the phrase store):
@@ -116,8 +120,9 @@ If a particular language pair has no bundled model, the app honestly shows
 ## Core principle
 
 The core communication and translation layers do not depend on internet, cloud APIs,
-Firebase, a license server, or a central backend. Internet may be added later only as an
-optional transport/bootstrap/statistics layer.
+Firebase, a license server, or a central backend. Phones connect directly over Bluetooth
+or a shared Wi-Fi network; internet is only an optional transport when devices are reachable.
+The mesh keeps working as long as any route between devices exists.
 
 ## Third-party licenses
 

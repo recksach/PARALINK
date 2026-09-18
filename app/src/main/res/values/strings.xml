@@ -130,12 +130,16 @@
     <string name="how_1">Radar: tapping a blip opens a private chat with that person.</string>
     <string name="how_2">Radar: press and hold a blip to record a voice wave, release to send it right to that person.</string>
     <string name="how_3">Chat: it is a private messenger — your nickname is what others see.</string>
-    <string name="how_4">No internet needed: devices pair directly through built-in Wi-Fi antennas.</string>
+    <string name="how_4">Works with no internet over Bluetooth, or over Wi-Fi when devices share a network.</string>
     <string name="guide_title">HOW PARALINK WORKS</string>
-    <string name="guide_1">Turn on Wi-Fi (and GPS for the radar). No internet needed.</string>
-    <string name="guide_2">On the Network screen open another phone: use \"Create own network\" on one, \"Join\" on the other, or just keep both nearby — auto-pair finds them.</string>
+    <string name="guide_1">No internet is required: connect over Bluetooth or a shared Wi-Fi network.</string>
+    <string name="guide_2">Network: turn Bluetooth on both phones, press \"Scan Bluetooth\" and tap the other phone — or use \"Create own network\"/\"Join\" on the same Wi-Fi.</string>
     <string name="guide_3">Radar: tap a blip = private chat, press-and-hold = record a voice wave and send it on release.</string>
     <string name="guide_4">Set any nickname in Profile — others will see it.</string>
     <string name="guide_5">You earn PARA the longer you stay linked. Spend it in the Store (wallet tab).</string>
     <string name="guide_start">START</string>
+    <string name="bluetooth_title">BLUETOOTH</string>
+    <string name="bluetooth_desc">No internet? Phones talk directly over Bluetooth. Radar, chats and voice work the same.</string>
+    <string name="bluetooth_scan">SCAN BLUETOOTH</string>
+    <string name="bluetooth_connect">CONNECT</string>
 </resources>

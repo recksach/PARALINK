@@ -130,12 +130,16 @@
     <string name="how_1">Радар: тап по метке открывает личный чат с этим человеком.</string>
     <string name="how_2">Радар: зажми метку — записывается голосовое, отпусти — и оно уходит именно этому человеку.</string>
     <string name="how_3">Чат — личный мессенджер: твой ник виден всем, как в Telegram.</string>
-    <string name="how_4">Интернет не нужен: устройства связываются напрямую через встроенные Wi-Fi-антенны.</string>
+    <string name="how_4">Без интернета связь идёт по Bluetooth или по общей Wi-Fi-сети.</string>
     <string name="guide_title">КАК РАБОТАЕТ PARALINK</string>
-    <string name="guide_1">Включи Wi-Fi (и GPS для радара). Интернет не нужен.</string>
-    <string name="guide_2">На экране «Сеть» соедини два телефона: на одном «Создать свою сеть», на другом «Присоединиться» — или просто держи их рядом, автопара найдет сама.</string>
+    <string name="guide_1">Интернет не обязателен: соединяй по Bluetooth или по общей Wi-Fi-сети.</string>
+    <string name="guide_2">«Сеть»: включи Bluetooth на обоих телефонах, нажми «Найти по Bluetooth» и выбери второй — или используй «Создать свою сеть»/«Присоединиться» на одном и том же Wi-Fi.</string>
     <string name="guide_3">Радар: тап по метке = личный чат, а зажать = записать голосовое и отправить, отпустив палец.</string>
     <string name="guide_4">В «Профиле» задай любой ник — его увидят другие.</string>
     <string name="guide_5">Чем дольше связь — тем больше PARA. Трать их в магазине (вкладка «Кошелёк»).</string>
     <string name="guide_start">НАЧАТЬ</string>
+    <string name="bluetooth_title">BLUETOOTH</string>
+    <string name="bluetooth_desc">Нет интернета? Телефоны связываются напрямую по Bluetooth. Радар, чаты и голосовые работают так же.</string>
+    <string name="bluetooth_scan">НАЙТИ ПО BLUETOOTH</string>
+    <string name="bluetooth_connect">ПОДКЛЮЧИТЬ</string>
 </resources>

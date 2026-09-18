@@ -55,7 +55,10 @@ fun NetworkScreen(
     mineGold: Boolean = false,
     onRadarTap: (String) -> Unit = {},
     onRadarPtt: (String, Boolean) -> Unit = { _, _ -> },
-    pttTarget: String? = null
+    pttTarget: String? = null,
+    btDevices: List<Pair<String, String>> = emptyList(),
+    onBluetoothScan: () -> Unit = {},
+    onBluetoothConnect: (String) -> Unit = {}
 ) {
     var ipInput by remember { mutableStateOf("") }
     var joinSsid by remember { mutableStateOf("") }
@@ -197,6 +200,45 @@ fun NetworkScreen(
             }
             Spacer(Modifier.height(14.dp))
         }
+        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220))) {
+            Column(Modifier.padding(14.dp)) {
+                Text(stringResource(R.string.bluetooth_title), fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.bluetooth_desc),
+                    fontSize = 11.sp,
+                    color = Color(0xFF7890AA)
+                )
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = onBluetoothScan,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text(stringResource(R.string.bluetooth_scan)) }
+                if (btDevices.isNotEmpty()) {
+                    Spacer(Modifier.height(10.dp))
+                    btDevices.forEach { (devName, addr) ->
+                        Card(
+                            Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF0E1729))
+                        ) {
+                            Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(36.dp).clip(CircleShape).background(Color(0xFF11304F)), Alignment.Center) {
+                                    Text("」", color = Color(0xFF29D9FF), fontSize = 16.sp)
+                                }
+                                Spacer(Modifier.width(10.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(devName, fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                                    Text(addr, fontSize = 11.sp, color = Color(0xFF7890AA))
+                                }
+                                TextButton(onClick = { onBluetoothConnect(addr) }) {
+                                    Text(stringResource(R.string.bluetooth_connect), color = Color(0xFF29D9FF))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(12.dp))
         Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220))) {
             Column(Modifier.padding(14.dp)) {
                 Text(stringResource(R.string.connect_ip), fontSize = 11.sp, color = Color(0xFF6F9BCC))

@@ -209,6 +209,7 @@ private fun ParalinkApp(
     var myName by remember { mutableStateOf(displayName) }
     var chatWith by remember { mutableStateOf<String?>(null) }
     var radarPttTarget by remember { mutableStateOf<String?>(null) }
+    var btDevices by remember { mutableStateOf(p2p.btPeers()) }
     val radarRec = remember { PttRecorder() }
     val scope = rememberCoroutineScope()
 
@@ -314,6 +315,7 @@ private fun ParalinkApp(
                     peerDevices = p2p.peers()
                     knownNodes = p2p.knownNodes()
                     radarNodes = p2p.radarNodes()
+                    btDevices = p2p.btPeers()
                 }
                 P2PNetworkManager.Type.CONNECTED -> {
                     connected = true
@@ -449,7 +451,10 @@ private fun ParalinkApp(
                     mineGold = shop.owns("gold"),
                     onRadarTap = onRadarTap,
                     onRadarPtt = onRadarPtt,
-                    pttTarget = radarPttTarget
+                    pttTarget = radarPttTarget,
+                    btDevices = btDevices,
+                    onBluetoothScan = { p2p.startBluetoothDiscovery() },
+                    onBluetoothConnect = { addr -> p2p.connectBt(addr) }
                 )
                 Tab.CHAT -> ChatScreen(
                     messages = messages,

@@ -1,6 +1,11 @@
 package com.paralink.app.connectivity.wifi
 
 import android.Manifest
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothServerSocket
+import android.bluetooth.BluetoothSocket
 import android.content.*
 import android.content.pm.PackageManager
 import android.net.wifi.WifiConfiguration
@@ -33,6 +38,7 @@ class P2PNetworkManager(
         const val UDP_PORT = 49151
         const val CHANNEL_ALL = "*"
         const val BEACON_TTL_MS = 20000L
+        const val BT_UUID = "d133e46c-2e74-4e53-8c4e-7f2d3a1b9c00"
     }
 
     data class Node(val id: String, val name: String, val address: String?, val connected: Boolean)
@@ -71,6 +77,15 @@ class P2PNetworkManager(
     private var server: ServerSocket? = null
     private var udpSocket: DatagramSocket? = null
     private var groupInfo: WifiP2pGroup? = null
+    private val btAdapter: BluetoothAdapter? =
+        runCatching {
+            (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
+        }.getOrNull()
+    private val btSockets = ConcurrentHashMap<String, BluetoothSocket>()
+    private val btWriters = ConcurrentHashMap<String, BufferedWriter>()
+    private val btFound = ConcurrentHashMap<String, String>()
+    private var btServerSocket: BluetoothServerSocket? = null
+    @Volatile private var btScanning = false
     private var listener: ((Event) -> Unit)? = null
     private var peerDevices = emptyList<WifiP2pDevice>()
 
@@ -95,6 +110,7 @@ class P2PNetworkManager(
         ensureServer()
         announce()
         startBeacon()
+        startBluetooth()
     }
 
     fun stop() {
@@ -104,6 +120,11 @@ class P2PNetworkManager(
         server = null
         runCatching { udpSocket?.close() }
         udpSocket = null
+        runCatching { if (btScanning) btAdapter?.cancelDiscovery() }
+        runCatching { btServerSocket?.close() }
+        btServerSocket = null
+        btSockets.values.forEach { runCatching { it.close() } }
+        btSockets.clear(); btWriters.clear(); btFound.clear()
         sockets.values.forEach { runCatching { it.close() } }
         sockets.clear(); writers.clear(); linkPeers.clear(); networkKeys.clear(); pairwise.clear()
         scope.cancel()
@@ -391,6 +412,20 @@ class P2PNetworkManager(
                             emit(Event(Type.ERROR, text = "Wi-Fi Direct is off. Enable Wi-Fi to discover nearby devices."))
                         }
                     }
+                    BluetoothDevice.ACTION_FOUND -> {
+                        if (!hasBluetoothPermission()) return@onReceive
+                        val dev = runCatching {
+                            @Suppress("DEPRECATION")
+                            intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
+                        }.getOrNull()
+                        if (dev != null) {
+                            val devName = dev.name?.ifBlank { "PARALINK NODE" } ?: "PARALINK NODE"
+                            btFound[dev.address] = devName
+                            if (dev.bondState == BluetoothDevice.BOND_BONDED) connectBt(dev.address)
+                            emit(Event(Type.PEERS))
+                        }
+                    }
+                    BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> btScanning = false
                 }
             }
         }
@@ -399,6 +434,8 @@ class P2PNetworkManager(
             addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION)
             addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)
             addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
+            addAction(BluetoothDevice.ACTION_FOUND)
+            addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         }
         if (Build.VERSION.SDK_INT >= 33) context.registerReceiver(r, f, Context.RECEIVER_NOT_EXPORTED) else @Suppress("DEPRECATION") context.registerReceiver(r, f)
     }
@@ -430,6 +467,7 @@ class P2PNetworkManager(
         if (receiver == null) registerReceiver()
         startDiscovery()
         startBeacon()
+        startBluetooth()
     }
 
     private fun requestPeers() {
@@ -469,11 +507,107 @@ class P2PNetworkManager(
         }
     }
 
+    fun hasBluetooth(): Boolean = btAdapter != null
+
+    fun btPeers(): List<Pair<String, String>> = btFound.entries.map { it.value to it.key }
+
+    fun startBluetooth() {
+        if (btAdapter == null) return
+        if (!hasBluetoothPermission()) return
+        startBtServer()
+        scope.launch { connectBonded() }
+    }
+
+    fun connectBt(address: String) {
+        if (!hasBluetoothPermission()) return
+        scope.launch {
+            runCatching {
+                val dev = btAdapter?.getRemoteDevice(address)
+                    ?: throw IOException("unknown device $address")
+                if (btSockets.values.any { it.remoteDevice.address == address }) return@launch
+                val socket = dev.createInsecureRfcommSocketToServiceRecord(UUID.fromString(BT_UUID))
+                btAdapter?.cancelDiscovery()
+                socket.connect()
+                attachBt(address, socket)
+            }.onFailure { emit(Event(Type.ERROR, text = "Bluetooth: ${it.message}")) }
+        }
+    }
+
+    fun startBluetoothDiscovery() {
+        if (btAdapter == null) {
+            emit(Event(Type.ERROR, text = "Bluetooth is not available on this device."))
+            return
+        }
+        if (!hasBluetoothPermission()) {
+            emit(Event(Type.ERROR, text = "Bluetooth needs the Nearby devices permission first."))
+            return
+        }
+        scope.launch {
+            if (btAdapter?.isEnabled != true) {
+                emit(Event(Type.ERROR, text = "Bluetooth is off. Turn it on first."))
+                return@launch
+            }
+            connectBonded()
+            runCatching {
+                if (!btScanning) btScanning = btAdapter?.startDiscovery() == true
+            }
+        }
+    }
+
+    private fun startBtServer() {
+        if (btServerSocket != null) return
+        scope.launch {
+            runCatching {
+                val srv = btAdapter?.listenUsingRfcommWithServiceRecord("PARALINK", UUID.fromString(BT_UUID))
+                btServerSocket = srv
+                while (isActive && srv != null && !srv.isClosed) {
+                    val socket = srv.accept()
+                    attachBt("bt-in-${socket.remoteDevice.address}", socket)
+                }
+            }.onFailure { emit(Event(Type.ERROR, text = "Bluetooth server: ${it.message}")) }
+        }
+    }
+
+    private fun connectBonded() {
+        if (!hasBluetoothPermission()) return
+        runCatching {
+            btAdapter?.bondedDevices?.forEach { dev ->
+                val devName = dev.name?.ifBlank { "PARALINK NODE" } ?: "PARALINK NODE"
+                btFound[dev.address] = devName
+                if (btSockets.values.none { it.remoteDevice.address == dev.address }) connectBt(dev.address)
+            }
+            emit(Event(Type.PEERS))
+        }
+    }
+
+    private fun attachBt(key: String, socket: BluetoothSocket) {
+        scope.launch {
+            try {
+                btSockets[key] = socket
+                val writer = BufferedWriter(OutputStreamWriter(socket.outputStream, Charsets.UTF_8))
+                btWriters[key] = writer
+                val hello = MeshPacket(PacketKinds.HELLO, UUID.randomUUID().toString(), nodeId, RelayCore.BROADCAST, RelayCore.MAX_TTL, crypto.myPublicKeyB64())
+                writer.write(PacketCodec.encode(hello) + "\n"); writer.flush()
+                BufferedReader(InputStreamReader(socket.inputStream, Charsets.UTF_8)).use { reader ->
+                    while (true) {
+                        val line = reader.readLine() ?: break
+                        handleLine(line)
+                    }
+                }
+            } catch (e: IOException) {
+                if (socket.isConnected) emit(Event(Type.ERROR, text = "Bluetooth link: ${e.message}"))
+            } finally {
+                runCatching { socket.close() }
+                btSockets.remove(key); btWriters.remove(key)
+            }
+        }
+    }
+
     private fun announce() {
         scope.launch {
             while (isActive) {
                 try {
-                    if (writers.isNotEmpty()) {
+                    if (writers.isNotEmpty() || btWriters.isNotEmpty()) {
                         val packet = MeshPacket(PacketKinds.HELLO, UUID.randomUUID().toString(), nodeId, RelayCore.BROADCAST, RelayCore.MAX_TTL, crypto.myPublicKeyB64())
                         broadcast(packet)
                     }
@@ -661,9 +795,20 @@ class P2PNetworkManager(
         writers.values.toList().forEach { w ->
             runCatching { w.write(line); w.flush() }
         }
+        btWriters.values.toList().forEach { w ->
+            runCatching { w.write(line); w.flush() }
+        }
     }
 
     private fun emit(event: Event) = Handler(Looper.getMainLooper()).post { listener?.invoke(event) }
+
+    private fun hasBluetoothPermission(): Boolean =
+        if (Build.VERSION.SDK_INT >= 31) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
 
     private fun hasPermission(): Boolean {
         val nearby = if (Build.VERSION.SDK_INT >= 33) ContextCompat.checkSelfPermission(context, Manifest.permission.NEARBY_WIFI_DEVICES) == PackageManager.PERMISSION_GRANTED else true
