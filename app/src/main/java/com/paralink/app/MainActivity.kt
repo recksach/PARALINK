@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.paralink.app.connectivity.wifi.P2PNetworkManager
@@ -244,9 +245,9 @@ private fun ParalinkApp(
         walletBalance = ledger.currentBalance(System.currentTimeMillis())
     }
 
-    val sendText: (String) -> Unit = { text ->
+    val sendText: (String) -> Unit = txt@{
         val clean = text.trim()
-        if (clean.isEmpty()) return@sendText
+        if (clean.isEmpty()) return@txt
         val id = System.nanoTime().toString()
         store.add(ChatMessage(
             id = id,

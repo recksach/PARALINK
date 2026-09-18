@@ -273,7 +273,7 @@ fun MeshRadar(
 
             placed.forEachIndexed { idx, p ->
                 val phase = (((idx + 1) * 137.5f + pulse * 360f) % 360f) / 360f
-                val echoR = (p.pos - c).length() * phase
+                val echoR = (p.pos - c).length * phase
                 if (echoR > 4f) {
                     drawCircle(Color(0xFF29D9FF).copy(alpha = (1f - phase) * 0.30f * p.alpha + 0.03f), echoR, c, style = Stroke(1.8f, cap = StrokeCap.Round))
                 }
