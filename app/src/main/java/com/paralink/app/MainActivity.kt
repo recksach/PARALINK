@@ -245,7 +245,7 @@ private fun ParalinkApp(
         walletBalance = ledger.currentBalance(System.currentTimeMillis())
     }
 
-    val sendText: (String) -> Unit = txt@{
+    val sendText: (String) -> Unit = txt@{ text ->
         val clean = text.trim()
         if (clean.isEmpty()) return@txt
         val id = System.nanoTime().toString()
