@@ -28,7 +28,8 @@ data class ChatMessage(
     val originalText: String = text,
     val translatedText: String? = null,
     val detectedLanguage: String? = null,
-    val translationStatus: String = STATUS_NONE
+    val translationStatus: String = STATUS_NONE,
+    val peerId: String? = null
 ) : Serializable
 
 data class VoiceMessage(
@@ -40,7 +41,8 @@ data class VoiceMessage(
     val timestamp: Long,
     val incoming: Boolean,
     val transcript: String? = null,
-    val translatedText: String? = null
+    val translatedText: String? = null,
+    val peerId: String? = null
 ) : Serializable
 
 data class Route(

@@ -117,4 +117,25 @@
     <string name="detected_language_title">Detected language:</string>
     <string name="use_language">USE</string>
     <string name="change_language">CHANGE</string>
+
+    <string name="private_chat">PRIVATE</string>
+    <string name="contacts">CONTACTS</string>
+    <string name="no_messages">No messages yet. Tap a contact or a radar blip to write to a person directly.</string>
+    <string name="no_messages_peer">Private chat is empty. Say hello!</string>
+    <string name="send_to_peer">Message %1$s…</string>
+    <string name="nickname_label">YOUR NICKNAME</string>
+    <string name="nickname_hint">Anything you like</string>
+    <string name="save_name">SAVE NAME</string>
+    <string name="how_it_works">HOW IT WORKS</string>
+    <string name="how_1">Radar: tapping a blip opens a private chat with that person.</string>
+    <string name="how_2">Radar: press and hold a blip to record a voice wave, release to send it right to that person.</string>
+    <string name="how_3">Chat: it is a private messenger — your nickname is what others see.</string>
+    <string name="how_4">No internet needed: devices pair directly through built-in Wi-Fi antennas.</string>
+    <string name="guide_title">HOW PARALINK WORKS</string>
+    <string name="guide_1">Turn on Wi-Fi (and GPS for the radar). No internet needed.</string>
+    <string name="guide_2">On the Network screen open another phone: use \"Create own network\" on one, \"Join\" on the other, or just keep both nearby — auto-pair finds them.</string>
+    <string name="guide_3">Radar: tap a blip = private chat, press-and-hold = record a voice wave and send it on release.</string>
+    <string name="guide_4">Set any nickname in Profile — others will see it.</string>
+    <string name="guide_5">You earn PARA the longer you stay linked. Spend it in the Store (wallet tab).</string>
+    <string name="guide_start">START</string>
 </resources>

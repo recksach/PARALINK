@@ -5,7 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -18,12 +18,14 @@ import com.paralink.app.core.language.LanguageManager
 
 @Composable
 fun ProfileScreen(
-    nodeId: String,
     name: String,
     connected: Boolean,
-    language: LanguageManager
+    language: LanguageManager,
+    nodeId: String = "",
+    onRename: (String) -> Unit = {}
 ) {
     val languages = Language.supported
+    var nick by remember(name) { mutableStateOf(name) }
     Column(
         Modifier
             .fillMaxSize()
@@ -44,6 +46,35 @@ fun ProfileScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     StatusPill(if (connected) stringResource(R.string.connected) else stringResource(R.string.ready), Color(0xFF29D9FF))
                     StatusPill(stringResource(R.string.relay), Color(0xFF2D7DFF))
+                }
+                Spacer(Modifier.height(14.dp))
+                Text(stringResource(R.string.nickname_label), fontSize = 12.sp, color = Color(0xFF63CFFF), fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                OutlinedTextField(
+                    value = nick,
+                    onValueChange = { nick = it },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(stringResource(R.string.nickname_hint)) }
+                )
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = { onRename(nick) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.save_name))
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220)), modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+            Column(Modifier.padding(16.dp)) {
+                Text(stringResource(R.string.how_it_works), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF63CFFF))
+                Spacer(Modifier.height(8.dp))
+                listOf(R.string.how_1, R.string.how_2, R.string.how_3, R.string.how_4).forEachIndexed { i, res ->
+                    Row(Modifier.padding(vertical = 4.dp)) {
+                        Text("${i + 1}.", color = Color(0xFF29D9FF), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(res), color = Color(0xFFC9D8F2), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }

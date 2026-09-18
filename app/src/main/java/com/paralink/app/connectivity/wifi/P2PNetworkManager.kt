@@ -26,7 +26,7 @@ import com.paralink.app.core.mesh.RelayCore
 class P2PNetworkManager(
     private val context: Context,
     private val nodeId: String,
-    private val displayName: String
+    private var displayName: String
 ) {
     companion object {
         const val PORT = 49152
@@ -82,8 +82,6 @@ class P2PNetworkManager(
     @Volatile private var myBadge: String? = null
     @Volatile private var beaconBoost: Boolean = false
     @Volatile private var deepScan: Boolean = false
-    private val autoHostTried = java.util.concurrent.atomic.AtomicBoolean(false)
-
     private val discoveryLock = Any()
     private var discoveryRunning = false
     private val beaconLock = Any()
@@ -97,13 +95,6 @@ class P2PNetworkManager(
         ensureServer()
         announce()
         startBeacon()
-        scope.launch {
-            delay(25000)
-            if (networkKeys.isEmpty() && groupInfo == null && autoHostTried.compareAndSet(false, true) && hasPermission()) {
-                emit(Event(Type.ERROR, text = "No devices found. Creating own network — enter its name and password on the other phone."))
-                createOwnNetwork()
-            }
-        }
     }
 
     fun stop() {
@@ -194,6 +185,11 @@ class P2PNetworkManager(
         deepScan = on
     }
 
+    fun setDisplayName(name: String) {
+        val clean = name.trim()
+        if (clean.isNotEmpty()) displayName = clean
+    }
+
     fun sendText(text: String) {
         val clean = text.trim()
         if (clean.isEmpty()) return
@@ -201,9 +197,22 @@ class P2PNetworkManager(
         sendEncrypted(PacketKinds.TXT, body.toByteArray(Charsets.UTF_8), visual = clean)
     }
 
+    fun sendTextTo(targetId: String, text: String) {
+        val clean = text.trim()
+        if (clean.isEmpty() || targetId == nodeId) return
+        val body = "TXT|${displayName.replace('|','_')}|${UUID.randomUUID()}|${System.currentTimeMillis()}|$localChannel|${clean.replace('\n',' ')}"
+        sendEncrypted(PacketKinds.TXT, body.toByteArray(Charsets.UTF_8), visual = clean, target = targetId)
+    }
+
     fun sendVoice(wavB64: String, durationMs: Long, previewText: String) {
         val body = "VOICE|${displayName.replace('|','_')}|${UUID.randomUUID()}|${System.currentTimeMillis()}|$localChannel|$durationMs|$wavB64"
         sendEncrypted(PacketKinds.VOICE, body.toByteArray(Charsets.UTF_8), visual = previewText)
+    }
+
+    fun sendVoiceTo(targetId: String, wavB64: String, durationMs: Long, previewText: String) {
+        if (wavB64.isEmpty() || targetId == nodeId) return
+        val body = "VOICE|${displayName.replace('|','_')}|${UUID.randomUUID()}|${System.currentTimeMillis()}|$localChannel|$durationMs|$wavB64"
+        sendEncrypted(PacketKinds.VOICE, body.toByteArray(Charsets.UTF_8), visual = previewText, target = targetId)
     }
 
     fun sendToken(targetId: String, amount: Double, note: String) {
@@ -216,6 +225,20 @@ class P2PNetworkManager(
     private fun sendEncrypted(kind: String, plain: ByteArray, visual: String, target: String? = null) {
         scope.launch {
             var targets = if (target != null) listOf(target) else networkKeys.keys.filter { it != nodeId }
+            if (target != null && !networkKeys.containsKey(target)) {
+                val t = target
+                nodeAddr[t]?.let { addr ->
+                    if (sockets.values.none { it.inetAddress?.hostAddress == addr }) {
+                        runCatching {
+                            val socket = Socket()
+                            socket.tcpNoDelay = true
+                            socket.connect(InetSocketAddress(addr, PORT), 4000)
+                            attachSocket("direct-$t", socket)
+                        }
+                    }
+                }
+                delay(900)
+            }
             if (targets.isEmpty()) {
                 nodeAddr.entries.take(3).forEach { (id, addr) ->
                     runCatching {

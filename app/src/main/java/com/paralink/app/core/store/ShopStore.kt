@@ -8,10 +8,10 @@ object ShopItems {
     data class Item(val id: String, val nameRes: Int, val descRes: Int, val cost: Double, val icon: String)
 
     val LIST = listOf(
-        Item("star", R.string.shop_star, R.string.shop_star_desc, 4.0, "★"),
-        Item("gold", R.string.shop_gold, R.string.shop_gold_desc, 10.0, "✦"),
-        Item("boost", R.string.shop_boost, R.string.shop_boost_desc, 5.0, "⏫"),
-        Item("scan", R.string.shop_scan, R.string.shop_scan_desc, 8.0, "⭍")
+        Item("star", R.string.shop_star, R.string.shop_star_desc, 50.0, "★"),
+        Item("gold", R.string.shop_gold, R.string.shop_gold_desc, 150.0, "✦"),
+        Item("boost", R.string.shop_boost, R.string.shop_boost_desc, 60.0, "⏫"),
+        Item("scan", R.string.shop_scan, R.string.shop_scan_desc, 90.0, "⭍")
     )
 
     fun byId(id: String): Item? = LIST.firstOrNull { it.id == id }

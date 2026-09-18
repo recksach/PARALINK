@@ -52,7 +52,10 @@ fun NetworkScreen(
     myLat: Double = 0.0,
     myLon: Double = 0.0,
     mineBadge: String? = null,
-    mineGold: Boolean = false
+    mineGold: Boolean = false,
+    onRadarTap: (String) -> Unit = {},
+    onRadarPtt: (String, Boolean) -> Unit = { _, _ -> },
+    pttTarget: String? = null
 ) {
     var ipInput by remember { mutableStateOf("") }
     var joinSsid by remember { mutableStateOf("") }
@@ -67,7 +70,21 @@ fun NetworkScreen(
             IconButton(onClick = refresh) { Icon(Icons.Default.Refresh, null) }
         }
         Spacer(Modifier.height(8.dp))
-        MeshRadar(radarNodes, myLat, myLon)
+        MeshRadar(radarNodes, myLat, myLon, onNodeTap = onRadarTap, onNodePtt = onRadarPtt, pttTarget = pttTarget)
+        if (pttTarget != null) {
+            Spacer(Modifier.height(6.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(10.dp).clip(CircleShape).background(Color(0xFFFF5252)))
+                Spacer(Modifier.width(8.dp))
+                val pttName = radarNodes.firstOrNull { it.id == pttTarget }?.name
+                Text(
+                    "● REC → ${pttName.orEmpty()}",
+                    color = Color(0xFFFF6B6B),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+        }
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             StatusPill(

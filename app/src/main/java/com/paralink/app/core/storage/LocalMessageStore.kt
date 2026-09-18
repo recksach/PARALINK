@@ -76,7 +76,8 @@ class LocalMessageStore(context: Context) {
                     originalText = o.optString("originalText", o.getString("text")),
                     translatedText = o.optString("translatedText", "").takeIf { it.isNotEmpty() },
                     detectedLanguage = o.optString("detectedLanguage", "").takeIf { it.isNotEmpty() },
-                    translationStatus = o.optString("translationStatus", STATUS_NONE)
+                    translationStatus = o.optString("translationStatus", STATUS_NONE),
+                    peerId = o.optString("peerId", "").takeIf { it.isNotEmpty() }
                 ))
             }
         }
@@ -94,7 +95,8 @@ class LocalMessageStore(context: Context) {
                     timestamp = o.getLong("timestamp"),
                     incoming = o.getBoolean("incoming"),
                     transcript = o.optString("transcript", "").takeIf { it.isNotEmpty() },
-                    translatedText = o.optString("translatedText", "").takeIf { it.isNotEmpty() }
+                    translatedText = o.optString("translatedText", "").takeIf { it.isNotEmpty() },
+                    peerId = o.optString("peerId", "").takeIf { it.isNotEmpty() }
                 ))
             }
         }
@@ -109,6 +111,7 @@ class LocalMessageStore(context: Context) {
                 put("timestamp", it.timestamp); put("incoming", it.incoming)
                 put("translatedText", it.translatedText ?: ""); put("detectedLanguage", it.detectedLanguage ?: "")
                 put("translationStatus", it.translationStatus)
+                put("peerId", it.peerId ?: "")
             })
         }
         prefs.edit().putString("data", arr.toString()).apply()
@@ -120,6 +123,7 @@ class LocalMessageStore(context: Context) {
                 put("wavBase64", it.wavBase64); put("durationMs", it.durationMs)
                 put("timestamp", it.timestamp); put("incoming", it.incoming)
                 put("transcript", it.transcript ?: ""); put("translatedText", it.translatedText ?: "")
+                put("peerId", it.peerId ?: "")
             })
         }
         prefs.edit().putString("voice", v.toString()).apply()

@@ -117,4 +117,25 @@
     <string name="detected_language_title">Определённый язык:</string>
     <string name="use_language">ИСПОЛЬЗОВАТЬ</string>
     <string name="change_language">СМЕНИТЬ</string>
+
+    <string name="private_chat">ЛИЧНЫЙ</string>
+    <string name="contacts">КОНТАКТЫ</string>
+    <string name="no_messages">Сообщений пока нет. Нажми на контакт или метку на радаре, чтобы написать лично.</string>
+    <string name="no_messages_peer">Личный чат пуст. Поздоровайся!</string>
+    <string name="send_to_peer">Сообщение для %1$s…</string>
+    <string name="nickname_label">ТВОЙ НИК</string>
+    <string name="nickname_hint">Любой, какой хочешь</string>
+    <string name="save_name">СОХРАНИТЬ ИМЯ</string>
+    <string name="how_it_works">КАК ЭТО РАБОТАЕТ</string>
+    <string name="how_1">Радар: тап по метке открывает личный чат с этим человеком.</string>
+    <string name="how_2">Радар: зажми метку — записывается голосовое, отпусти — и оно уходит именно этому человеку.</string>
+    <string name="how_3">Чат — личный мессенджер: твой ник виден всем, как в Telegram.</string>
+    <string name="how_4">Интернет не нужен: устройства связываются напрямую через встроенные Wi-Fi-антенны.</string>
+    <string name="guide_title">КАК РАБОТАЕТ PARALINK</string>
+    <string name="guide_1">Включи Wi-Fi (и GPS для радара). Интернет не нужен.</string>
+    <string name="guide_2">На экране «Сеть» соедини два телефона: на одном «Создать свою сеть», на другом «Присоединиться» — или просто держи их рядом, автопара найдет сама.</string>
+    <string name="guide_3">Радар: тап по метке = личный чат, а зажать = записать голосовое и отправить, отпустив палец.</string>
+    <string name="guide_4">В «Профиле» задай любой ник — его увидят другие.</string>
+    <string name="guide_5">Чем дольше связь — тем больше PARA. Трать их в магазине (вкладка «Кошелёк»).</string>
+    <string name="guide_start">НАЧАТЬ</string>
 </resources>

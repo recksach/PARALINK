@@ -38,6 +38,7 @@ import com.paralink.app.core.language.LanguageManager
 import com.paralink.app.core.language.LanguageManifest
 import com.paralink.app.core.language.OfflinePhraseTranslationEngine
 import com.paralink.app.core.language.StatisticalMTEngine
+import com.paralink.app.core.media.PttRecorder
 import com.paralink.app.core.media.WavPlayer
 import com.paralink.app.core.model.ChatMessage
 import com.paralink.app.core.model.VoiceMessage
@@ -97,7 +98,7 @@ class MainActivity : ComponentActivity() {
         p2p.start()
         setContent {
             MaterialTheme(colorScheme = ParalinkScheme) {
-                ParalinkApp(nodeId, displayName, WifiCapabilities(this), p2p, store, language, ledger, shop)
+                ParalinkApp(this, nodeId, displayName, WifiCapabilities(this), p2p, store, language, ledger, shop)
             }
         }
     }
@@ -177,6 +178,7 @@ private enum class Tab { NETWORK, CHAT, RADIO, WALLET, PROFILE }
 
 @Composable
 private fun ParalinkApp(
+    context: Context,
     nodeId: String,
     displayName: String,
     caps: WifiCapabilities,
@@ -203,7 +205,30 @@ private fun ParalinkApp(
     var firstRunShown by remember { mutableStateOf(!language.firstRunDone) }
     var ownNetwork by remember { mutableStateOf<String?>(null) }
     var joinStatus by remember { mutableStateOf<String?>(null) }
+    var myName by remember { mutableStateOf(displayName) }
+    var chatWith by remember { mutableStateOf<String?>(null) }
+    var radarPttTarget by remember { mutableStateOf<String?>(null) }
+    val radarRec = remember { PttRecorder() }
     val scope = rememberCoroutineScope()
+
+    val chatName = chatWith?.let { id ->
+        radarNodes.firstOrNull { it.id == id }?.name
+            ?: knownNodes.firstOrNull { it.id == id }?.name
+    }
+
+    val renameNick: (String) -> Unit = { raw ->
+        val clean = raw.trim()
+        if (clean.isNotEmpty() && clean != myName) {
+            context.getSharedPreferences("paralink_profile", Context.MODE_PRIVATE)
+                .edit().putString("name", clean).apply()
+            myName = clean
+            p2p.setDisplayName(clean)
+        }
+    }
+
+    val openPeer: (String) -> Unit = { id -> chatWith = id; tab = Tab.CHAT }
+
+    val closePeer: () -> Unit = { chatWith = null }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -220,18 +245,21 @@ private fun ParalinkApp(
     }
 
     val sendText: (String) -> Unit = { text ->
+        val clean = text.trim()
+        if (clean.isEmpty()) return@sendText
         val id = System.nanoTime().toString()
         store.add(ChatMessage(
             id = id,
             senderId = nodeId,
-            senderName = displayName,
-            text = text,
+            senderName = myName,
+            text = clean,
             timestamp = System.currentTimeMillis(),
             incoming = false,
-            originalText = text,
-            translationStatus = STATUS_NONE
+            originalText = clean,
+            translationStatus = STATUS_NONE,
+            peerId = chatWith
         ))
-        p2p.sendText(text)
+        if (chatWith != null) p2p.sendTextTo(chatWith!!, clean) else p2p.sendText(clean)
         messages = store.all()
     }
 
@@ -249,6 +277,33 @@ private fun ParalinkApp(
     val setChannel: (String) -> Unit = { c ->
         channel = c
         p2p.setChannel(c)
+    }
+
+    val onRadarTap: (String) -> Unit = openPeer
+
+    val onRadarPtt: (String, Boolean) -> Unit = { id, pressed ->
+        if (pressed) {
+            radarPttTarget = id
+            radarRec.start()
+        } else {
+            val t = radarPttTarget
+            radarPttTarget = null
+            val (wav, dur) = radarRec.stop()
+            if (wav.isNotEmpty() && dur >= 300 && t != null) {
+                store.addVoice(VoiceMessage(
+                    id = System.nanoTime().toString(),
+                    senderId = nodeId,
+                    senderName = myName,
+                    wavBase64 = wav,
+                    durationMs = dur,
+                    timestamp = System.currentTimeMillis(),
+                    incoming = false,
+                    peerId = t
+                ))
+                p2p.sendVoiceTo(t, wav, dur, "voice $dur")
+                voiceMessages = store.allVoices()
+            }
+        }
     }
 
     DisposableEffect(Unit) {
@@ -309,7 +364,7 @@ private fun ParalinkApp(
                         store.addVoice(VoiceMessage(
                             id = System.nanoTime().toString(),
                             senderId = n?.id ?: "unknown",
-                            senderName = n?.name ?: displayName,
+                            senderName = n?.name ?: myName,
                             wavBase64 = wav,
                             durationMs = event.durationMs,
                             timestamp = System.currentTimeMillis(),
@@ -363,7 +418,7 @@ private fun ParalinkApp(
             when (tab) {
                 Tab.NETWORK -> NetworkScreen(
                     nodeId = nodeId,
-                    name = displayName,
+                    name = myName,
                     peers = peerDevices,
                     knownNodes = knownNodes.map { it.id },
                     caps = caps,
@@ -390,7 +445,10 @@ private fun ParalinkApp(
                     joinStatus = joinStatus,
                     onJoinNetwork = { ssid, pass -> p2p.wifiJoinNetwork(ssid, pass) },
                     mineBadge = if (shop.owns("star")) "★" else null,
-                    mineGold = shop.owns("gold")
+                    mineGold = shop.owns("gold"),
+                    onRadarTap = onRadarTap,
+                    onRadarPtt = onRadarPtt,
+                    pttTarget = radarPttTarget
                 )
                 Tab.CHAT -> ChatScreen(
                     messages = messages,
@@ -400,7 +458,15 @@ private fun ParalinkApp(
                     onPlayVoice = playVoice,
                     playingVoiceId = playingVoiceId,
                     channel = channel,
-                    onChannelChange = setChannel
+                    onChannelChange = setChannel,
+                    peerId = chatWith,
+                    peerName = chatName,
+                    onBack = closePeer,
+                    onOpenPeer = openPeer,
+                    peersOnline = radarNodes
+                        .filter { System.currentTimeMillis() - it.lastSeen < 10000 }
+                        .sortedByDescending { it.lastSeen }
+                        .map { it.id to it.name }
                 )
                 Tab.RADIO -> RadioScreen(
                     voiceMessages = voiceMessages,
@@ -436,7 +502,7 @@ private fun ParalinkApp(
                         ok
                     }
                 )
-                Tab.PROFILE -> ProfileScreen(nodeId, displayName, connected, language)
+                Tab.PROFILE -> ProfileScreen(myName, connected, language, nodeId = nodeId, onRename = renameNick)
             }
         }
     }
@@ -451,9 +517,35 @@ private fun ParalinkApp(
 
 @Composable
 private fun FirstRunDialog(language: LanguageManager, onDone: () -> Unit) {
+    var stage by remember { mutableStateOf(0) }
     var choosing by remember { mutableStateOf(false) }
     val detected = language.detectedSystemLanguage
-    if (choosing) {
+    if (stage == 1) {
+        AlertDialog(
+            onDismissRequest = { onDone() },
+            title = { Text(stringResource(R.string.guide_title)) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    listOf(
+                        R.string.guide_1,
+                        R.string.guide_2,
+                        R.string.guide_3,
+                        R.string.guide_4,
+                        R.string.guide_5
+                    ).forEachIndexed { i, res ->
+                        Row(Modifier.padding(vertical = 6.dp)) {
+                            Text("${i + 1}.", color = Color(0xFF29D9FF), fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(res), modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = onDone) { Text(stringResource(R.string.guide_start)) }
+            }
+        )
+    } else if (choosing) {
         AlertDialog(
             onDismissRequest = { choosing = false },
             title = { Text(stringResource(R.string.detected_language_title)) },
@@ -464,7 +556,7 @@ private fun FirstRunDialog(language: LanguageManager, onDone: () -> Unit) {
                             language.appLanguage = lang
                             language.communicationLanguage = lang
                             language.targetLanguage = lang
-                            onDone()
+                            stage = 1
                         }) {
                             Text("${lang.flag} ${lang.nativeName}")
                         }
@@ -490,7 +582,7 @@ private fun FirstRunDialog(language: LanguageManager, onDone: () -> Unit) {
                     language.appLanguage = detected
                     language.communicationLanguage = detected
                     language.targetLanguage = detected
-                    onDone()
+                    stage = 1
                 }) { Text(stringResource(R.string.use_language)) }
             },
             dismissButton = {

@@ -1,11 +1,21 @@
 package com.paralink.app.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Stop
@@ -52,41 +62,79 @@ fun ChatScreen(
     onPlayVoice: (VoiceMessage) -> Unit,
     playingVoiceId: String?,
     channel: String = "*",
-    onChannelChange: (String) -> Unit = {}
+    onChannelChange: (String) -> Unit = {},
+    peerId: String? = null,
+    peerName: String? = null,
+    onBack: () -> Unit = {},
+    onOpenPeer: (String) -> Unit = {},
+    peersOnline: List<Pair<String, String>> = emptyList()
 ) {
     var text by remember { mutableStateOf("") }
     val showOriginalOnly = remember { mutableStateMapOf<String, Boolean>() }
 
-    val items = remember(messages, voiceMessages) {
+    val inPeer = peerId != null
+    val filteredMsgs = if (inPeer) messages.filter { if (it.incoming) it.senderId == peerId else it.peerId == peerId } else messages
+    val filteredVoices = if (inPeer) voiceMessages.filter { if (it.incoming) it.senderId == peerId else it.peerId == peerId } else voiceMessages
+
+    val items = remember(filteredMsgs, filteredVoices) {
         buildList {
-            messages.forEach { add(TimelineItem.TextMsg(it)) }
-            voiceMessages.forEach { add(TimelineItem.VoiceMsg(it)) }
+            filteredMsgs.forEach { add(TimelineItem.TextMsg(it)) }
+            filteredVoices.forEach { add(TimelineItem.VoiceMsg(it)) }
         }.sortedBy { it.stamp }
     }
 
     Column(Modifier.fillMaxSize().padding(14.dp)) {
-        Text(stringResource(R.string.messenger), fontSize = 27.sp, fontWeight = FontWeight.Bold)
-        Text(stringResource(R.string.transport_hint), color = Color(0xFF7890AA))
+        if (inPeer) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, null, tint = Color(0xFF29D9FF)) }
+                Column {
+                    Text(peerName ?: "…", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.private_chat), fontSize = 11.sp, color = Color(0xFF42E8A4), letterSpacing = 1.sp)
+                }
+            }
+        } else {
+            Text(stringResource(R.string.messenger), fontSize = 27.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.transport_hint), color = Color(0xFF7890AA))
+        }
         Spacer(Modifier.height(8.dp))
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.channel_label), fontSize = 11.sp, color = Color(0xFF6F9BCC), fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-            Spacer(Modifier.width(8.dp))
-            OutlinedTextField(
-                value = channel,
-                onValueChange = onChannelChange,
-                modifier = Modifier.weight(1f),
-                placeholder = { Text(stringResource(R.string.channel_hint)) },
-                singleLine = true
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                if (channel.isNotBlank()) "● $channel" else "● ${stringResource(R.string.all_channels)}",
-                color = Color(0xFF42E8A4),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
+        if (!inPeer) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.channel_label), fontSize = 11.sp, color = Color(0xFF6F9BCC), fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                Spacer(Modifier.width(8.dp))
+                OutlinedTextField(
+                    value = channel,
+                    onValueChange = onChannelChange,
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text(stringResource(R.string.channel_hint)) },
+                    singleLine = true
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    if (channel.isNotBlank()) "● $channel" else "● ${stringResource(R.string.all_channels)}",
+                    color = Color(0xFF42E8A4),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            if (peersOnline.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Text(stringResource(R.string.contacts), fontSize = 11.sp, color = Color(0xFF6F9BCC), fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                Spacer(Modifier.height(4.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(peersOnline) { (id, nm) ->
+                        AssistChip(onClick = { onOpenPeer(id) }, label = { Text("◉ $nm") })
+                    }
+                }
+            }
         }
         Spacer(Modifier.height(6.dp))
+        if (items.isEmpty()) {
+            Text(
+                stringResource(if (inPeer) R.string.no_messages_peer else R.string.no_messages),
+                color = Color(0xFF8092AB),
+                modifier = Modifier.padding(top = 14.dp)
+            )
+        }
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(items, key = { it.key }) { item ->
                 when (item) {
@@ -104,7 +152,7 @@ fun ChatScreen(
                 value = text,
                 onValueChange = { text = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text(stringResource(R.string.message_hint)) },
+                placeholder = { Text(stringResource(if (inPeer) R.string.send_to_peer else R.string.message_hint, peerName ?: "")) },
                 singleLine = true
             )
             IconButton(onClick = {
