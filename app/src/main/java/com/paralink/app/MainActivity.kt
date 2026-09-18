@@ -147,9 +147,9 @@ class MainActivity : ComponentActivity() {
         }
         if (Build.VERSION.SDK_INT >= 30) {
             val exec = java.util.concurrent.Executors.newSingleThreadExecutor()
-            runCatching { lm.getCurrentLocation(LocationManager.GPS_PROVIDER, null, exec, ::getLocationConsumer) }
             runCatching { lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 5f, exec) { loc -> p2p.setMyLocation(loc.latitude, loc.longitude) } }
             runCatching { lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L, 5f, exec) { loc -> p2p.setMyLocation(loc.latitude, loc.longitude) } }
+            runCatching { lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)?.let { p2p.setMyLocation(it.latitude, it.longitude) } }
         } else {
             @Suppress("DEPRECATION")
             val l = object : LocationListener {
@@ -165,9 +165,6 @@ class MainActivity : ComponentActivity() {
             runCatching { lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L, 5f, l) }
         }
     }
-
-    private fun getLocationConsumer(): java.util.function.Consumer<Location> =
-        java.util.function.Consumer { loc -> p2p.setMyLocation(loc.latitude, loc.longitude) }
 }
 
 private enum class Tab { NETWORK, CHAT, RADIO, WALLET, PROFILE }
