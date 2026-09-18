@@ -50,7 +50,9 @@ fun NetworkScreen(
     joinStatus: String? = null,
     onJoinNetwork: (String, String) -> Unit = { _, _ -> },
     myLat: Double = 0.0,
-    myLon: Double = 0.0
+    myLon: Double = 0.0,
+    mineBadge: String? = null,
+    mineGold: Boolean = false
 ) {
     var ipInput by remember { mutableStateOf("") }
     var joinSsid by remember { mutableStateOf("") }
@@ -136,7 +138,11 @@ fun NetworkScreen(
         Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220))) {
             Column(Modifier.padding(14.dp)) {
                 Text(stringResource(R.string.node_label), fontSize = 11.sp, color = Color(0xFF6F9BCC))
-                Text("$name • $nodeId", fontWeight = FontWeight.SemiBold)
+                Text(
+                    "${mineBadge.orEmpty()} $name".trim(),
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (mineGold) Color(0xFFFFD54F) else Color.Unspecified
+                )
                 Text(stringResource(R.string.wifi_direct_label) + " ${caps.summary()["wifiDirect"] == true}")
                 Text(stringResource(R.string.wifi_aware_label) + " ${caps.summary()["wifiAware"] == true}")
                 if (error != null) Text(error, color = Color(0xFFFF6B6B), fontSize = 12.sp)

@@ -47,6 +47,7 @@ import com.paralink.app.core.model.STATUS_TRANSLATED
 import com.paralink.app.core.model.STATUS_UNAVAILABLE
 import com.paralink.app.core.storage.LedgerStore
 import com.paralink.app.core.storage.LocalMessageStore
+import com.paralink.app.core.store.ShopStore
 import com.paralink.app.ui.ChatScreen
 import com.paralink.app.ui.NetworkScreen
 import com.paralink.app.ui.ProfileScreen
@@ -71,6 +72,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var store: LocalMessageStore
     private lateinit var language: LanguageManager
     private lateinit var ledger: LedgerStore
+    private lateinit var shop: ShopStore
 
     private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         p2p.restartDiscovery()
@@ -87,11 +89,15 @@ class MainActivity : ComponentActivity() {
         language = buildLanguageManager()
         ledger = LedgerStore(this)
         p2p = P2PNetworkManager(this, nodeId, displayName)
+        shop = ShopStore(this)
+        p2p.setNodeStyle(shop.owns("gold"), if (shop.owns("star")) "★" else null)
+        p2p.setBeaconBoost(shop.boostActive())
+        p2p.setDeepScan(shop.owns("scan"))
         requestPermissions()
         p2p.start()
         setContent {
             MaterialTheme(colorScheme = ParalinkScheme) {
-                ParalinkApp(nodeId, displayName, WifiCapabilities(this), p2p, store, language, ledger)
+                ParalinkApp(nodeId, displayName, WifiCapabilities(this), p2p, store, language, ledger, shop)
             }
         }
     }
@@ -177,7 +183,8 @@ private fun ParalinkApp(
     p2p: P2PNetworkManager,
     store: LocalMessageStore,
     language: LanguageManager,
-    ledger: LedgerStore
+    ledger: LedgerStore,
+    shop: ShopStore
 ) {
     var tab by remember { mutableStateOf(Tab.NETWORK) }
     var peerDevices by remember { mutableStateOf(p2p.peers()) }
@@ -193,6 +200,7 @@ private fun ParalinkApp(
     var autoPairEnabled by remember { mutableStateOf(true) }
     var radarNodes by remember { mutableStateOf(p2p.radarNodes()) }
     var myLoc by remember { mutableStateOf(0.0 to 0.0) }
+    var firstRunShown by remember { mutableStateOf(!language.firstRunDone) }
     var ownNetwork by remember { mutableStateOf<String?>(null) }
     var joinStatus by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -380,7 +388,9 @@ private fun ParalinkApp(
                     onCreateNetwork = { p2p.createOwnNetwork() },
                     onStopNetwork = { p2p.stopOwnNetwork() },
                     joinStatus = joinStatus,
-                    onJoinNetwork = { ssid, pass -> p2p.wifiJoinNetwork(ssid, pass) }
+                    onJoinNetwork = { ssid, pass -> p2p.wifiJoinNetwork(ssid, pass) },
+                    mineBadge = if (shop.owns("star")) "★" else null,
+                    mineGold = shop.owns("gold")
                 )
                 Tab.CHAT -> ChatScreen(
                     messages = messages,
@@ -410,6 +420,20 @@ private fun ParalinkApp(
                     history = ledger.transactions(),
                     onTransfer = { peerId, amount, note ->
                         ledger.debit(amount, peerId, note).also { if (it) p2p.sendToken(peerId, amount, note) }
+                    },
+                    shop = shop,
+                    onBuy = { item ->
+                        val ok = shop.buy(item, ledger)
+                        if (ok) {
+                            when (item.id) {
+                                "gold" -> p2p.setNodeStyle(true, if (shop.owns("star")) "★" else null)
+                                "star" -> p2p.setNodeStyle(shop.owns("gold"), "★")
+                                "boost" -> p2p.setBeaconBoost(shop.boostActive())
+                                "scan" -> p2p.setDeepScan(true)
+                            }
+                            walletBalance = ledger.currentBalance(System.currentTimeMillis())
+                        }
+                        ok
                     }
                 )
                 Tab.PROFILE -> ProfileScreen(nodeId, displayName, connected, language)
@@ -417,8 +441,12 @@ private fun ParalinkApp(
         }
     }
 
-    if (!language.firstRunDone) {
-        FirstRunDialog(language) { language.firstRunDone = true }
+    if (firstRunShown) {
+            FirstRunDialog(language) {
+                firstRunShown = false
+                language.firstRunDone = true
+            }
+        }
     }
 }
 

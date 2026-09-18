@@ -36,7 +36,7 @@ class P2PNetworkManager(
     }
 
     data class Node(val id: String, val name: String, val address: String?, val connected: Boolean)
-    data class RadarNode(val id: String, val name: String, val lastSeen: Long, val lat: Double = 0.0, val lon: Double = 0.0)
+    data class RadarNode(val id: String, val name: String, val lastSeen: Long, val lat: Double = 0.0, val lon: Double = 0.0, val gold: Boolean = false, val badge: String? = null)
     data class Event(
         val type: Type,
         val node: Node? = null,
@@ -60,6 +60,8 @@ class P2PNetworkManager(
     private val networkKeys = ConcurrentHashMap<String, String>()
     private val nodeNames = ConcurrentHashMap<String, String>()
     private val nodeCoords = ConcurrentHashMap<String, Pair<Double, Double>>()
+    private val nodeAddr = ConcurrentHashMap<String, String>()
+    private val nodeStyle = ConcurrentHashMap<String, Pair<Boolean, String?>>()
     private val lastSeen = ConcurrentHashMap<String, Long>()
     private val pairwise = ConcurrentHashMap<String, SecretKeySpec>()
     private val seenIds = ConcurrentHashMap.newKeySet<String>()
@@ -76,6 +78,11 @@ class P2PNetworkManager(
     @Volatile private var autoPair: Boolean = true
     @Volatile private var myLat: Double = 0.0
     @Volatile private var myLon: Double = 0.0
+    @Volatile private var myGold: Boolean = false
+    @Volatile private var myBadge: String? = null
+    @Volatile private var beaconBoost: Boolean = false
+    @Volatile private var deepScan: Boolean = false
+    private val autoHostTried = java.util.concurrent.atomic.AtomicBoolean(false)
 
     private val discoveryLock = Any()
     private var discoveryRunning = false
@@ -90,6 +97,13 @@ class P2PNetworkManager(
         ensureServer()
         announce()
         startBeacon()
+        scope.launch {
+            delay(25000)
+            if (networkKeys.isEmpty() && groupInfo == null && autoHostTried.compareAndSet(false, true) && hasPermission()) {
+                emit(Event(Type.ERROR, text = "No devices found. Creating own network — enter its name and password on the other phone."))
+                createOwnNetwork()
+            }
+        }
     }
 
     fun stop() {
@@ -139,12 +153,22 @@ class P2PNetworkManager(
         networkKeys.keys.forEach { ids += it }
         lastSeen.keys.forEach { ids += it }
         val now = System.currentTimeMillis()
+        val ttl = if (deepScan) 45000L else BEACON_TTL_MS
         return ids
-            .filter { it != nodeId && now - (lastSeen[it] ?: 0L) < BEACON_TTL_MS }
+            .filter { it != nodeId && now - (lastSeen[it] ?: 0L) < ttl }
             .sorted()
             .map {
                 val c = nodeCoords[it]
-                RadarNode(it, nodeNames[it] ?: it, lastSeen[it] ?: 0L, c?.first ?: 0.0, c?.second ?: 0.0)
+                val s = nodeStyle[it]
+                RadarNode(
+                    it,
+                    nodeNames[it] ?: it,
+                    lastSeen[it] ?: 0L,
+                    c?.first ?: 0.0,
+                    c?.second ?: 0.0,
+                    s?.first ?: false,
+                    s?.second
+                )
             }
     }
 
@@ -156,6 +180,19 @@ class P2PNetworkManager(
     }
 
     fun myLocation(): Pair<Double, Double> = myLat to myLon
+
+    fun setNodeStyle(gold: Boolean, badge: String?) {
+        myGold = gold
+        myBadge = badge
+    }
+
+    fun setBeaconBoost(on: Boolean) {
+        beaconBoost = on
+    }
+
+    fun setDeepScan(on: Boolean) {
+        deepScan = on
+    }
 
     fun sendText(text: String) {
         val clean = text.trim()
@@ -177,12 +214,26 @@ class P2PNetworkManager(
     }
 
     private fun sendEncrypted(kind: String, plain: ByteArray, visual: String, target: String? = null) {
-        val targets = if (target != null) listOf(target) else networkKeys.keys.filter { it != nodeId }
-        if (targets.isEmpty()) {
-            emit(Event(Type.ERROR, text = "No peers known yet. Open PARALINK on a nearby device first."))
-            return
-        }
         scope.launch {
+            var targets = if (target != null) listOf(target) else networkKeys.keys.filter { it != nodeId }
+            if (targets.isEmpty()) {
+                nodeAddr.entries.take(3).forEach { (id, addr) ->
+                    runCatching {
+                        if (sockets.values.none { it.inetAddress?.hostAddress == addr }) {
+                            val socket = Socket()
+                            socket.tcpNoDelay = true
+                            socket.connect(InetSocketAddress(addr, PORT), 4000)
+                            attachSocket("retry-$id", socket)
+                        }
+                    }
+                }
+                delay(900)
+                targets = if (target != null) networkKeys.keys.filter { it == target } else networkKeys.keys.filter { it != nodeId }
+            }
+            if (targets.isEmpty()) {
+                emit(Event(Type.ERROR, text = "No peers known yet. Open PARALINK on a nearby device first."))
+                return@launch
+            }
             targets.forEach { t ->
                 runCatching {
                     val key = pairwiseKey(t)
@@ -423,7 +474,7 @@ class P2PNetworkManager(
                 udpSocket = ds
                 while (isActive) {
                     runCatching { sendBeacon() }
-                    delay(3000)
+                    delay(if (beaconBoost) 1500L else 3000L)
                 }
             }
         }
@@ -443,8 +494,8 @@ class P2PNetworkManager(
     }
 
     private fun sendBeacon() {
-        val loc = if (myLat != 0.0 || myLon != 0.0) "|$myLat|$myLon" else ""
-        val payload = "BEACON|$nodeId|${displayName.replace('|','_')}|$PORT|CH$loc".toByteArray(Charsets.UTF_8)
+        val badge = myBadge?.replace('|', ' ').orEmpty()
+        val payload = "BEACON|$nodeId|${displayName.replace('|','_')}|$PORT|CH|${myLat}|${myLon}|${if (myGold) "1" else "0"}|$badge".toByteArray(Charsets.UTF_8)
         val s = DatagramSocket()
         s.broadcast = true
         runCatching {
@@ -460,11 +511,13 @@ class P2PNetworkManager(
         val senderName = parts[2]
         val senderPort = parts[3].toIntOrNull() ?: PORT
         nodeNames[senderId] = senderName
+        nodeAddr[senderId] = fromAddr
         if (parts.size >= 7) {
             val lat = parts[5].toDoubleOrNull() ?: 0.0
             val lon = parts[6].toDoubleOrNull() ?: 0.0
             if (lat != 0.0 && lon != 0.0) nodeCoords[senderId] = lat to lon
         }
+        if (parts.size >= 8) nodeStyle[senderId] = (parts[7] == "1") to parts.getOrNull(8)?.takeIf { it.isNotBlank() }
         lastSeen[senderId] = System.currentTimeMillis()
         emit(Event(Type.PEERS))
         if (networkKeys.containsKey(senderId)) return

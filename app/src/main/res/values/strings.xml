@@ -38,7 +38,7 @@
     <string name="para_credits">PARA CREDITS</string>
     <string name="local_balance">Local balance</string>
 
-    <string name="earn_rate">Earning +1.0 PARA/min per link (%1$d links)</string>
+    <string name="earn_rate">Earning +0.05 PARA/min per link (%1$d links)</string>
     <string name="earn_offline">Connect to a node to start earning PARA</string>
     <string name="transfer">Transfer PARA</string>
     <string name="transfer_to">To node</string>
@@ -48,6 +48,21 @@
     <string name="received">Received</string>
     <string name="sent">Sent</string>
     <string name="earned">Earned</string>
+    <string name="no_nodes_yet">No connected nodes yet — open the Network tab and link a device first</string>
+
+    <string name="store_title">PARALINK STORE</string>
+    <string name="store_desc">Spend PARA on network perks for your node</string>
+    <string name="store_owned">Owned</string>
+    <string name="store_buy">BUY</string>
+    <string name="store_insufficient">Not enough PARA</string>
+    <string name="shop_star">Star Badge</string>
+    <string name="shop_star_desc">A ★ appears next to your node name everywhere</string>
+    <string name="shop_gold">Golden Node Name</string>
+    <string name="shop_gold_desc">Your name lights up in gold on radar and chat</string>
+    <string name="shop_boost">Beacon Boost ×2</string>
+    <string name="shop_boost_desc">Broadcast your beacon twice as often for 10 minutes</string>
+    <string name="shop_scan">Deep Scan Radar</string>
+    <string name="shop_scan_desc">Radar keeps discovered nodes visible twice as long</string>
     <string name="mesh_nodes">MESH NODES</string>
     <string name="connect_ip">CONNECT BY IP</string>
     <string name="connect_ip_hint">IP address, e.g. 192.168.1.5</string>

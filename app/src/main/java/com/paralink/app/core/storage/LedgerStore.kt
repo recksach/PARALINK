@@ -20,7 +20,7 @@ class LedgerStore(context: Context) {
     private var balance: Double = 0.0
     private var accrualStart: Long = 0L
     private var connectedCount: Int = 0
-    private val ratePerMin = 1.0
+    private val ratePerMin = 0.05
     private val entries = mutableListOf<LedgerEntry>()
 
     init { load() }

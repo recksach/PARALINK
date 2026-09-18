@@ -38,7 +38,7 @@
     <string name="para_credits">PARA CREDITS</string>
     <string name="local_balance">Локальный баланс</string>
 
-    <string name="earn_rate">Начисление +1.0 PARA/мин за связь (%1$d связей)</string>
+    <string name="earn_rate">Начисление +0.05 PARA/мин за связь (%1$d связей)</string>
     <string name="earn_offline">Подключитесь к узлу, чтобы начать зарабатывать PARA</string>
     <string name="transfer">Перевод PARA</string>
     <string name="transfer_to">Узел</string>
@@ -48,6 +48,21 @@
     <string name="received">Получено</string>
     <string name="sent">Отправлено</string>
     <string name="earned">Начислено</string>
+    <string name="no_nodes_yet">Нет подключённых узлов — открой вкладку «Сеть» и свяжись с устройством</string>
+
+    <string name="store_title">МАГАЗИН PARALINK</string>
+    <string name="store_desc">Потрать PARA на функции для своего узла</string>
+    <string name="store_owned">Куплено</string>
+    <string name="store_buy">КУПИТЬ</string>
+    <string name="store_insufficient">Недостаточно PARA</string>
+    <string name="shop_star">Значок-звезда</string>
+    <string name="shop_star_desc">★ появится рядом с именем узла везде</string>
+    <string name="shop_gold">Золотое имя узла</string>
+    <string name="shop_gold_desc">Твоё имя загорится золотом на радаре и в чате</string>
+    <string name="shop_boost">Ускорение маячка ×2</string>
+    <string name="shop_boost_desc">Маячок вещается в 2 раза чаще в течение 10 минут</string>
+    <string name="shop_scan">Дальний радар</string>
+    <string name="shop_scan_desc">Радар держит найденные узлы видимыми в 2 раза дольше</string>
     <string name="mesh_nodes">УЗЛЫ СЕТИ</string>
     <string name="connect_ip">ПОДКЛЮЧЕНИЕ ПО IP</string>
     <string name="connect_ip_hint">IP-адрес, напр. 192.168.1.5</string>

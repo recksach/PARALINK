@@ -28,8 +28,8 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
 import com.paralink.app.connectivity.wifi.P2PNetworkManager
 import kotlin.math.*
-import kotlin.math.cos
-import kotlin.math.sin
+
+const val RADAR_GOLD = 0xFFFFD54F
 
 @Composable
 fun MeshRadar(nodes: List<P2PNetworkManager.RadarNode>, myLat: Double = 0.0, myLon: Double = 0.0) {
@@ -52,9 +52,18 @@ fun MeshRadar(nodes: List<P2PNetworkManager.RadarNode>, myLat: Double = 0.0, myL
             textAlign = android.graphics.Paint.Align.CENTER
         }
     }
+    val goldPaint = remember {
+        android.graphics.Paint().apply {
+            isAntiAlias = true
+            color = RADAR_GOLD
+            typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+            textAlign = android.graphics.Paint.Align.CENTER
+        }
+    }
 
     val ctx = LocalContext.current
     var heading by remember { mutableFloatStateOf(0f) }
+    var headingValid by remember { mutableStateOf(false) }
     DisposableEffect(ctx) {
         val sm = ctx.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val rot = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
@@ -65,7 +74,16 @@ fun MeshRadar(nodes: List<P2PNetworkManager.RadarNode>, myLat: Double = 0.0, myL
                 override fun onSensorChanged(e: SensorEvent) {
                     SensorManager.getRotationMatrixFromVector(r, e.values)
                     SensorManager.getOrientation(r, orien)
-                    heading = ((Math.toDegrees(orien[0].toDouble()).toFloat() + 360f) % 360f)
+                    val raw = ((Math.toDegrees(orien[0].toDouble()).toFloat() + 360f) % 360f)
+                    heading = if (headingValid) {
+                        var d = raw - heading
+                        if (d > 180f) d -= 360f
+                        if (d < -180f) d += 360f
+                        (heading + d * 0.12f + 360f) % 360f
+                    } else {
+                        headingValid = true
+                        raw
+                    }
                 }
                 override fun onAccuracyChanged(s: Sensor, accuracy: Int) = Unit
             }
@@ -101,22 +119,26 @@ fun MeshRadar(nodes: List<P2PNetworkManager.RadarNode>, myLat: Double = 0.0, myL
             drawLine(Color(0xFF29D9FF).copy(alpha = 0.65f), c, sweepEnd, 2f, cap = StrokeCap.Round)
             drawCircle(Color(0xFF2D7DFF).copy(alpha = 0.55f), 36f, c, style = Stroke(1.6f))
 
-            val northVis = (360f - heading) % 360f
-            val nRad = Math.toRadians(northVis.toDouble())
-            val nEnd = Offset(c.x + cos(nRad).toFloat() * r * 0.96f, c.y + sin(nRad).toFloat() * r * 0.96f)
-            drawLine(Color(0xFFFF5252).copy(alpha = 0.8f), c, nEnd, 2.4f, cap = StrokeCap.Round)
-            labelPaint.textSize = r * 0.1f
-            drawContext.canvas.nativeCanvas.drawText("N", nEnd.x, nEnd.y - 6f, labelPaint)
+            if (headingValid) {
+                val northVis = (360f - heading) % 360f
+                val nRad = Math.toRadians(northVis.toDouble())
+                val nEnd = Offset(c.x + cos(nRad).toFloat() * r * 0.9f, c.y + sin(nRad).toFloat() * r * 0.9f)
+                drawLine(Color(0xFFFF5252).copy(alpha = 0.6f), c, nEnd, 1.6f, cap = StrokeCap.Round)
+                labelPaint.textSize = r * 0.09f
+                labelPaint.color = android.graphics.Color.rgb(255, 150, 150)
+                drawContext.canvas.nativeCanvas.drawText("N", nEnd.x, nEnd.y - 4f, labelPaint)
+                labelPaint.color = android.graphics.Color.rgb(234, 242, 255)
+            }
 
-            val deadline = 20000L
             val now = System.currentTimeMillis()
+            val deadline = maxOf(20000L, nodes.maxOfOrNull { now - it.lastSeen }?.plus(2000) ?: 0L)
             val coordNodes = nodes.filter { it.lat != 0.0 && it.lon != 0.0 && myLat != 0.0 && myLon != 0.0 }
             val maxDistM = coordNodes.map { haversineMeters(myLat, myLon, it.lat, it.lon) }
                 .maxOrNull()?.coerceAtLeast(30.0) ?: 0.0
 
-            nodes.forEach { n ->
+            nodes.sortedByDescending { it.lastSeen }.forEachIndexed { idx, n ->
                 val age = now - n.lastSeen
-                if (age > deadline) return@forEach
+                if (age > deadline) return@forEachIndexed
                 val alpha = (1f - age.toFloat() / deadline.toFloat()).coerceIn(0f, 1f)
 
                 val useGps = n.lat != 0.0 && n.lon != 0.0 && myLat != 0.0 && myLon != 0.0
@@ -125,23 +147,30 @@ fun MeshRadar(nodes: List<P2PNetworkManager.RadarNode>, myLat: Double = 0.0, myL
                 if (useGps && maxDistM > 0) {
                     bearing = bearingCW(myLat, myLon, n.lat, n.lon)
                     val d = haversineMeters(myLat, myLon, n.lat, n.lon)
-                    val alog = (log10(d / 10.0).coerceIn(log10(0.012), log10(maxDistM / 10.0)) - log10(0.012)) /
-                        (log10(maxDistM / 10.0) - log10(0.012)).coerceAtLeast(0.0001)
-                    distFrac = (0.12f + 0.78f * alog.toFloat()).coerceIn(0.12f, 0.94f).toFloat()
+                    val lo = log10(0.012)
+                    val hi = log10(maxDistM / 10.0).coerceAtLeast(lo + 0.1)
+                    val t = ((log10(d / 10.0)) - lo) / (hi - lo)
+                    distFrac = (0.12f + 0.78f * t.toFloat()).coerceIn(0.12f, 0.94f)
                 } else {
                     val h = (n.id.hashCode() and 0x7fffffff) % 360
                     bearing = h.toDouble()
-                    distFrac = 0.36f + ((n.id.hashCode() and 0x7fffffff) % 900) / 900f * 0.55f
+                    distFrac = 0.30f + ((n.id.hashCode() and 0x7fffffff) % 900) / 900f * 0.55f
                 }
                 val screenDeg = (bearing - heading + 360f) % 360f
                 val degRad = Math.toRadians(screenDeg.toDouble())
                 val pos = Offset(c.x + cos(degRad).toFloat() * r * distFrac, c.y - sin(degRad).toFloat() * r * distFrac)
+
+                val phase = (((idx + 1) * 137.5f + pulse * 360f) % 360f) / 360f
+                drawCircle(Color(0xFF29D9FF).copy(alpha = (1f - phase) * 0.30f * alpha + 0.03f), r * distFrac * phase, c, style = Stroke(1.6f))
+
                 val ringR = 5f + pulse * 3f
                 drawCircle(Color(0xFF29D9FF).copy(alpha = 0.22f * alpha), ringR * 2.6f, pos)
                 drawCircle(Color(0xFF42E8A4).copy(alpha = alpha), ringR, pos)
                 drawCircle(Color(0xFFEAF2FF).copy(alpha = alpha * 0.8f), 2f, pos)
-                labelPaint.textSize = r * 0.085f
-                drawContext.canvas.nativeCanvas.drawText(n.name.take(12), pos.x, pos.y - ringR - 6f, labelPaint)
+                val paint = if (n.gold) goldPaint else labelPaint
+                paint.textSize = r * 0.085f
+                val badge = n.badge?.takeIf { it.isNotBlank() }?.let { "$it " }.orEmpty()
+                drawContext.canvas.nativeCanvas.drawText(badge + n.name.take(11), pos.x, pos.y - ringR - 6f, paint)
             }
 
             labelPaint.textSize = r * 0.09f

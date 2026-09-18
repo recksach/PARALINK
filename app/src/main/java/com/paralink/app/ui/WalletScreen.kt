@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import com.paralink.app.R
 import com.paralink.app.connectivity.wifi.P2PNetworkManager
 import com.paralink.app.core.storage.LedgerEntry
+import com.paralink.app.core.store.ShopItems
+import com.paralink.app.core.store.ShopStore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -36,7 +38,9 @@ fun WalletScreen(
     peerCount: Int,
     peers: List<P2PNetworkManager.Node>,
     history: List<LedgerEntry>,
-    onTransfer: (peerId: String, amount: Double, note: String) -> Boolean
+    onTransfer: (peerId: String, amount: Double, note: String) -> Boolean,
+    shop: ShopStore? = null,
+    onBuy: (ShopItems.Item) -> Boolean = { false }
 ) {
     var selectedPeer by remember { mutableStateOf<String?>(null) }
     var amountText by remember { mutableStateOf("") }
@@ -79,7 +83,7 @@ fun WalletScreen(
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(Modifier.padding(16.dp)) {
-                Box {
+                Box(Modifier.fillMaxWidth().clickable { menuOpen = true }) {
                     val selected = peers.firstOrNull { it.id == selectedPeer }
                     OutlinedTextField(
                         value = selected?.let { "${it.name} • ${it.id}" } ?: "",
@@ -91,7 +95,7 @@ fun WalletScreen(
                     )
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                         if (peers.isEmpty()) {
-                            DropdownMenuItem(text = { Text("No connected nodes yet") }, onClick = { menuOpen = false })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.no_nodes_yet)) }, onClick = { menuOpen = false })
                         }
                         peers.forEach { p ->
                             DropdownMenuItem(
@@ -137,6 +141,49 @@ fun WalletScreen(
                         color = if (status?.startsWith("OK") == true) Color(0xFF42E8A4) else Color(0xFFFF6B6B)
                     )
                 }
+            }
+        }
+        if (shop != null) {
+            Spacer(Modifier.height(16.dp))
+            Text(stringResource(R.string.store_title), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.store_desc), fontSize = 11.sp, color = Color(0xFF7890AA))
+            Spacer(Modifier.height(8.dp))
+            ShopItems.LIST.forEach { item ->
+                val owned = shop.owns(item.id)
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220)),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.size(42.dp).clip(CircleShape).background(if (owned) Color(0xFF2F3B14) else Color(0xFF17345E)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(item.icon, fontSize = 20.sp, color = if (owned) Color(0xFF42E8A4) else Color(0xFF29D9FF))
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(item.nameRes), fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(item.descRes), fontSize = 11.sp, color = Color(0xFF7890AA))
+                        }
+                        if (owned) {
+                            Text(stringResource(R.string.store_owned), color = Color(0xFF42E8A4), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        } else {
+                            Button(
+                                enabled = balance >= item.cost,
+                                onClick = {
+                                    val ok = onBuy(item)
+                                    if (!ok && balance < item.cost) status = "Insufficient balance"
+                                },
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text("${stringResource(R.string.store_buy)} ${item.cost} PARA")
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
             }
         }
         Spacer(Modifier.height(16.dp))
