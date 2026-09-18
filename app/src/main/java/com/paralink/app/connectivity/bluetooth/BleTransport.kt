@@ -205,8 +205,7 @@ class BleTransport(private val context: Context) {
         if (linkKind[address] == "server") return
         val txc = txChar ?: return
         links[address] = Link(address) { bytes ->
-            val ok = gattServer?.notifyCharacteristic(device, txc, true, bytes)
-                ?: throw IllegalStateException("gatt server down")
+            val ok = notifyServerChunk(device, txc, bytes)
             if (!ok) throw IllegalStateException("notify failed")
         }
         linkKind[address] = "server"
@@ -224,18 +223,47 @@ class BleTransport(private val context: Context) {
             pendingAddrs.remove(address)
             return
         }
-        links[address] = Link(address) { bytes ->
-            if (Build.VERSION.SDK_INT >= 33)
-                gatt.writeCharacteristic(rx, bytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
-            else @Suppress("DEPRECATION")
-                gatt.writeCharacteristic(rx, bytes)
-        }
+        links[address] = Link(address) { bytes -> writeClientChunk(gatt, rx, bytes) }
         linkKind[address] = "client"
         val fresh = openAddrs.add(address)
         if (fresh) {
             pendingAddrs.remove(address)
             onLink(address)
         }
+    }
+
+    /** GATT client write. The 3-arg overload is API 33+; the old 2-arg PDU was
+     *  removed from recent SDK stubs, so keep the value-set + 1-arg path for <33. */
+    private fun writeClientChunk(gatt: BluetoothGatt, rx: BluetoothGattCharacteristic, bytes: ByteArray) {
+        if (Build.VERSION.SDK_INT >= 33) {
+            gatt.writeCharacteristic(rx, bytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+        } else {
+            @Suppress("DEPRECATION")
+            runCatching {
+                rx.value = bytes
+                gatt.writeCharacteristic(rx)
+            }.getOrThrow()
+        }
+    }
+
+    /** GATT server notification. API 33+ has sendNotification; on older devices
+     *  fall back to the legacy notifyCharacteristic via reflection because the
+     *  member is no longer present in the compile-time SDK stubs. */
+    private fun notifyServerChunk(device: BluetoothDevice, txc: BluetoothGattCharacteristic, bytes: ByteArray): Boolean {
+        val server = gattServer ?: return false
+        if (Build.VERSION.SDK_INT >= 33) {
+            return server.sendNotification(device, txc, true, bytes)
+        }
+        return runCatching {
+            val m = BluetoothGattServer::class.java.getMethod(
+                "notifyCharacteristic",
+                BluetoothDevice::class.java,
+                BluetoothGattCharacteristic::class.java,
+                Boolean::class.javaPrimitiveType,
+                ByteArray::class.java
+            )
+            m.invoke(server, device, txc, true, bytes) as Boolean
+        }.getOrDefault(false)
     }
 
     private fun unregister(address: String) {

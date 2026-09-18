@@ -62,9 +62,6 @@ import com.paralink.app.ui.RadioScreen
 import com.paralink.app.ui.WalletScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import android.content.Intent
-import android.net.Uri
-import androidx.core.content.FileProvider
 import java.io.File
 import java.util.Locale
 
