@@ -189,7 +189,7 @@ fun MeshRadar(
         Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-            .onSizeChanged { radarSize = it }
+            .onSizeChanged { radarSize = Size(it.width.toFloat(), it.height.toFloat()) }
             .pointerInput(nodes, radarSize, myLat, myLon) {
                 if (radarSize.width < 1f) return@pointerInput
                 awaitEachGesture {
