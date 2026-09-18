@@ -560,7 +560,7 @@ class P2PNetworkManager(
             runCatching {
                 val srv = btAdapter?.listenUsingRfcommWithServiceRecord("PARALINK", UUID.fromString(BT_UUID))
                 btServerSocket = srv
-                while (isActive && srv != null && !srv.isClosed) {
+                while (isActive && srv != null && srv == btServerSocket) {
                     val socket = srv.accept()
                     attachBt("bt-in-${socket.remoteDevice.address}", socket)
                 }
