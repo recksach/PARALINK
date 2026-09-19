@@ -252,7 +252,7 @@ class BleTransport(private val context: Context) {
     private fun notifyServerChunk(device: BluetoothDevice, txc: BluetoothGattCharacteristic, bytes: ByteArray): Boolean {
         if (Build.VERSION.SDK_INT >= 33) {
             val server = gattServer ?: return false
-            return server.notifyCharacteristicChanged(device, txc, true, bytes)
+            return server.notifyCharacteristicChanged(device, txc, true, bytes) == BluetoothGatt.GATT_SUCCESS
         }
         return runCatching {
             val server = gattServer ?: return@runCatching false
