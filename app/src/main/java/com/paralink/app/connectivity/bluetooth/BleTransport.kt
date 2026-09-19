@@ -246,15 +246,16 @@ class BleTransport(private val context: Context) {
         }
     }
 
-    /** GATT server notification. API 33+ has sendNotification; on older devices
-     *  fall back to the legacy notifyCharacteristic via reflection because the
-     *  member is no longer present in the compile-time SDK stubs. */
+    /** GATT server notification. API 33+ uses notifyCharacteristicChanged; on
+     *  older devices fall back to the legacy notifyCharacteristic via reflection
+     *  because the old member is no longer present in compile-time SDK stubs. */
     private fun notifyServerChunk(device: BluetoothDevice, txc: BluetoothGattCharacteristic, bytes: ByteArray): Boolean {
-        val server = gattServer ?: return false
         if (Build.VERSION.SDK_INT >= 33) {
-            return server.sendNotification(device, txc, true, bytes)
+            val server = gattServer ?: return false
+            return server.notifyCharacteristicChanged(device, txc, true, bytes)
         }
         return runCatching {
+            val server = gattServer ?: return@runCatching false
             val m = BluetoothGattServer::class.java.getMethod(
                 "notifyCharacteristic",
                 BluetoothDevice::class.java,
