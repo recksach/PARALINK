@@ -22,7 +22,9 @@ import java.net.*
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.crypto.spec.SecretKeySpec
-import com.paralink.app.connectivity.bluetooth.BleTransport
+import com.paralink.app.connectivity.bluetooth.LinkState
+import com.paralink.app.connectivity.bluetooth.NearbyDevice
+import com.paralink.app.connectivity.bluetooth.ParalinkBleManager
 import com.paralink.app.core.crypto.MeshCrypto
 import com.paralink.app.core.mesh.MeshPacket
 import com.paralink.app.core.mesh.PacketCodec
@@ -105,7 +107,7 @@ class P2PNetworkManager(
     private val btFound = ConcurrentHashMap<String, String>()
     private var btServerSocket: BluetoothServerSocket? = null
     @Volatile private var btScanning = false
-    private var ble: BleTransport? = null
+    private var ble: ParalinkBleManager? = null
     private val bleKnown = ConcurrentHashMap.newKeySet<String>()
     private val outFiles = ConcurrentHashMap<String, OutFile>()
     private val inFiles = ConcurrentHashMap<String, InFile>()
@@ -129,11 +131,6 @@ class P2PNetworkManager(
     fun setListener(l: (Event) -> Unit) { listener = l }
 
     fun start() {
-        registerReceiver()
-        startDiscovery()
-        ensureServer()
-        announce()
-        startBeacon()
         startBluetooth()
     }
 
@@ -537,9 +534,6 @@ class P2PNetworkManager(
     }
 
     fun restartDiscovery() {
-        if (receiver == null) registerReceiver()
-        startDiscovery()
-        startBeacon()
         startBluetooth()
     }
 
@@ -582,58 +576,88 @@ class P2PNetworkManager(
 
     fun hasBluetooth(): Boolean = btAdapter != null
 
-    fun btPeers(): List<Pair<String, String>> = btFound.entries.map { it.value to it.key }
-
-    fun startBluetooth() {
-        if (btAdapter == null) return
-        if (!hasBluetoothPermission()) return
-        startBtServer()
-        startBle()
-        scope.launch { connectBonded() }
+    fun btPeers(): List<Pair<String, String>> {
+        val out = btFound.entries.map { it.value to it.key }.toMutableList()
+        ble?.nearby()?.forEach { dev ->
+            if (out.none { it.second == dev.address }) out.add(dev.name to dev.address)
+        }
+        return out
     }
+
+    fun blePeers(): List<NearbyDevice> = ble?.nearby() ?: emptyList()
+
+    fun bleDiagnostics(): String = ble?.diagnostics?.takeIf { true }?.snapshot()?.joinToString("\n") ?: "BLE manager not started"
+
+    /** UI hook: (address, sasCode) shown for out-of-band comparison during pairing. */
+    var onBleSas: ((String, String) -> Unit)? = null
+
+    /** UI hook: (address, LinkState, rssi). */
+    private var onBleState: ((String, LinkState, Int) -> Unit)? = null
+
+    fun setBleStateListener(l: (String, LinkState, Int) -> Unit) { onBleState = l }
 
     fun connectBt(address: String) {
         if (!hasBluetoothPermission()) return
-        if (bleKnown.contains(address)) {
-            ble?.connect(address)
+        ble?.connect(address)
+    }
+
+    fun bleConfirmSas(address: String) {
+        ble?.confirmSas(address)
+    }
+
+    private fun diagnosticsLog(msg: String) {
+        ble?.diagnostics?.log(msg)
+    }
+
+    fun startBluetooth() {
+        if (btAdapter == null) {
+            emit(Event(Type.ERROR, text = "Bluetooth is not available on this device."))
             return
         }
-        scope.launch {
-            runCatching {
-                val dev = btAdapter?.getRemoteDevice(address)
-                    ?: throw IOException("unknown device $address")
-                if (btSockets.values.any { it.remoteDevice.address == address }) return@launch
-                val socket = dev.createInsecureRfcommSocketToServiceRecord(UUID.fromString(BT_UUID))
-                btAdapter?.cancelDiscovery()
-                socket.connect()
-                attachBt(address, socket)
-            }.onFailure { emit(Event(Type.ERROR, text = "Bluetooth: ${it.message}")) }
+        if (!hasBluetoothPermission()) {
+            emit(Event(Type.ERROR, text = "Bluetooth needs the Nearby devices permission first."))
+            return
         }
+        startBle()
+        scope.launch { announce() }
     }
 
     private fun startBle() {
         if (!hasBluetoothPermission()) return
         val current = ble
         if (current != null) {
-            if (!current.available()) { ble = null } else return
+            if (!current.available()) { ble = null } else { current.start(); return }
         }
-        val transport = BleTransport(context)
-        if (!transport.available()) return
+        val transport = ParalinkBleManager(context, nodeId, displayName, crypto)
+        if (!transport.available()) {
+            emit(Event(Type.ERROR, text = "Bluetooth Low Energy is not available on this device."))
+            return
+        }
+        if (!transport.permissionsOk()) {
+            emit(Event(Type.ERROR, text = "Bluetooth SCAN/CONNECT permission is required."))
+            return
+        }
         ble = transport
         transport.onLine = { line -> handleLine(line) }
-        transport.onLink = { addr ->
+        transport.onFound = { dev ->
+            btFound[dev.address] = dev.name
+            bleKnown.add(dev.address)
             emit(Event(Type.PEERS))
         }
         transport.onLost = { addr ->
             bleKnown.add(addr)
             emit(Event(Type.PEERS))
         }
-        transport.onFound = { devName, addr ->
-            bleKnown.add(addr)
-            btFound.putIfAbsent(addr, devName)
+        transport.onState = { addr, state, _ ->
+            onBleState?.invoke(addr, state, transport.rssiFor(addr))
             emit(Event(Type.PEERS))
         }
+        transport.onSas = { addr, sas ->
+            diagnosticsLog("SAS for $addr: $sas")
+            onBleSas?.invoke(addr, sas)
+        }
         transport.start()
+        diagnosticsLog("PARALINK Bluetooth Core started (BG advertisement + scanner)")
     }
 
     fun startBluetoothDiscovery() {

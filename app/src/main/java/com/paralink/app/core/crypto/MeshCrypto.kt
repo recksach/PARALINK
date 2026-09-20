@@ -6,6 +6,7 @@ import android.security.keystore.KeyProperties
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.KeyStore
+import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
 import java.util.Base64
@@ -50,6 +51,12 @@ class MeshCrypto(context: Context) {
         val entry = ks.getEntry(ALIAS, null) as KeyStore.PrivateKeyEntry
         val b64 = Base64.getEncoder().encodeToString(entry.certificate.publicKey.encoded)
         return b64
+    }
+
+    /** Static P-256 private key (Keystore) used for link-level handshake auth. */
+    fun myStaticPrivateKey(): PrivateKey {
+        val ks = KeyStore.getInstance(KEYSTORE).apply { load(null) }
+        return (ks.getEntry(ALIAS, null) as KeyStore.PrivateKeyEntry).privateKey
     }
 
     fun sessionKey(peerPublicKeyB64: String): SecretKeySpec {

@@ -20,6 +20,14 @@ Session establishment, encryption, signatures, replay protection.
 ### Transport
 A common interface for Wi-Fi Aware, Wi-Fi Direct, local-only Wi-Fi, Bluetooth and optional internet transport.
 
+BLUETOOTH is the current primary local transport. It advertises a GATT
+service, scans for that service UUID, and runs a full link/handshake stack
+(`connectivity/bluetooth/`): bidirectional GATT characteristics, MTU
+negotiation, binary "PRLK" frames, HMAC-authenticated tagging, per-fragment
+ACK + retransmission, and a SAS code shown on both ends for visual
+verification. The older Wi-Fi Direct / RFCOMM path remains in the codebase
+but is no longer auto-started.
+
 ### Mesh
 Discovery, topology, route selection, forwarding, queueing and store-forward.
 

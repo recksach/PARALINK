@@ -55,6 +55,7 @@ import com.paralink.app.core.notify.NotificationHelper
 import com.paralink.app.core.storage.LedgerStore
 import com.paralink.app.core.storage.LocalMessageStore
 import com.paralink.app.core.store.ShopStore
+import com.paralink.app.ui.BluetoothDiagnosticsScreen
 import com.paralink.app.ui.ChatScreen
 import com.paralink.app.ui.NetworkScreen
 import com.paralink.app.ui.ProfileScreen
@@ -232,6 +233,9 @@ private fun ParalinkApp(
     var chatWith by remember { mutableStateOf<String?>(null) }
     var radarPttTarget by remember { mutableStateOf<String?>(null) }
     var btDevices by remember { mutableStateOf(p2p.btPeers()) }
+    var bleNearby by remember { mutableStateOf(p2p.blePeers()) }
+    var sasPending by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var showBleDiag by remember { mutableStateOf(false) }
     val radarRec = remember { PttRecorder() }
     val scope = rememberCoroutineScope()
 
@@ -363,6 +367,7 @@ private fun ParalinkApp(
     }
 
     DisposableEffect(Unit) {
+        p2p.onBleSas = { addr, sas -> sasPending = addr to sas }
         p2p.setListener { event ->
             when (event.type) {
                 P2PNetworkManager.Type.PEERS -> {
@@ -370,6 +375,7 @@ private fun ParalinkApp(
                     knownNodes = p2p.knownNodes()
                     radarNodes = p2p.radarNodes()
                     btDevices = p2p.btPeers()
+                    bleNearby = p2p.blePeers()
                 }
                 P2PNetworkManager.Type.CONNECTED -> {
                     connected = true
@@ -607,7 +613,16 @@ private fun ParalinkApp(
                         ok
                     }
                 )
-                Tab.PROFILE -> ProfileScreen(myName, connected, language, nodeId = nodeId, onRename = renameNick)
+                Tab.PROFILE -> ProfileScreen(myName, connected, language, nodeId = nodeId, onRename = renameNick, onOpenDiagnostics = { showBleDiag = true })
+            }
+            if (showBleDiag) {
+                BluetoothDiagnosticsScreen(
+                    devices = bleNearby,
+                    diagnostics = p2p.bleDiagnostics(),
+                    onRefresh = { bleNearby = p2p.blePeers() },
+                    onConnect = { addr -> p2p.connectBt(addr) },
+                    onClose = { showBleDiag = false }
+                )
             }
         }
     }
@@ -617,6 +632,41 @@ private fun ParalinkApp(
             firstRunShown = false
             language.firstRunDone = true
         }
+    }
+
+    val pendingSas = sasPending
+    if (pendingSas != null) {
+        AlertDialog(
+            onDismissRequest = { sasPending = null },
+            title = { Text("Bluetooth pairing") },
+            text = {
+                Column {
+                    Text("Both devices must show the same code before I trust the link.")
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        pendingSas.second,
+                        color = Color(0xFF29D9FF),
+                        fontSize = 34.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(pendingSas.first, fontSize = 11.sp, color = Color(0xFF7890AA))
+                    Text(
+                        "If the codes differ, cancel — someone may be intercepting.",
+                        fontSize = 11.sp,
+                        color = Color(0xFF88A3C8)
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    p2p.bleConfirmSas(pendingSas.first)
+                    sasPending = null
+                }) { Text("Codes match") }
+            },
+            dismissButton = {
+                TextButton(onClick = { sasPending = null }) { Text("Cancel") }
+            }
+        )
     }
 }
 

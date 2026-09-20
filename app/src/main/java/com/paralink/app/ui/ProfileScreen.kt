@@ -22,7 +22,8 @@ fun ProfileScreen(
     connected: Boolean,
     language: LanguageManager,
     nodeId: String = "",
-    onRename: (String) -> Unit = {}
+    onRename: (String) -> Unit = {},
+    onOpenDiagnostics: () -> Unit = {}
 ) {
     val languages = Language.supported
     var nick by remember(name) { mutableStateOf(name) }
@@ -104,6 +105,23 @@ fun ProfileScreen(
                 DisplayModeMenuRow(stringResource(R.string.display_mode), language.displayMode) { language.displayMode = it }
                 Spacer(Modifier.height(6.dp))
                 Text(stringResource(R.string.translation_unavailable), fontSize = 11.sp, color = Color(0xFF51627A))
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220)), modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+            Column(Modifier.padding(16.dp)) {
+                Text("Advanced", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF63CFFF))
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Bluetooth transport diagnostics — link states, RSSI, MTU, wire events.",
+                    fontSize = 12.sp,
+                    color = Color(0xFF7890AA)
+                )
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = onOpenDiagnostics, modifier = Modifier.fillMaxWidth()) {
+                    Text("Bluetooth Diagnostics", color = Color(0xFF29D9FF))
+                }
             }
         }
         Spacer(Modifier.height(20.dp))

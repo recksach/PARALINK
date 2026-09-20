@@ -8,3 +8,5 @@ local.properties
 .externalNativeBuild/
 .cxx/
 */build/
+build_local.log
+build_local_err.log

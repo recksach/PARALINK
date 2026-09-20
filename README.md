@@ -8,9 +8,14 @@ A real, buildable Kotlin + Jetpack Compose application — not a UI mockup:
 
 - Android target SDK 36 / min SDK 26
 - persistent local identity via Android Keystore
-- Wi-Fi Direct peer discovery + capability detection
+- **Bluetooth Low Energy as the primary local transport**: BLE
+  advertisement + scanning (service-UUID filtered), GATT server/client,
+  connect without pairing, works without Wi-Fi or an access point
+- Wi-Fi Direct peer discovery + capability detection (secondary transport)
 - local P2P TCP transport on Wi-Fi Direct group networks
-- end-to-end encryption (ECDH P-256 + HKDF + AES-GCM), relay nodes never see plaintext
+- end-to-end encryption (triple-ECDH P-256 + HKDF + AES-GCM), every BLE
+  frame authenticated with HMAC-SHA256, manual SAS verification, relay
+  nodes never see plaintext
 - local persistent chat + voice message history
 - radar / network UI, offline wallet ledger foundation
 - **Language Engine**: 15 UI languages, offline language detection,
